@@ -1,0 +1,9 @@
+﻿  mglApp.cpp
+C:\Users\André Soares\Desktop\cgj\02-hello-2d-world\mgl\mglApp.hpp(15,10): error C1083: Cannot open include file: 'glm/glm.hpp': No such file or directory
+  (compiling source file 'mgl/mglApp.cpp')
+  
+  mglError.cpp
+  mglShader.cpp
+  hello-2d-world.cpp
+C:\Users\André Soares\Desktop\cgj\02-hello-2d-world\src\hello-2d-world.cpp(13,10): error C1083: Cannot open include file: 'glm/glm.hpp': No such file or directory
+  Generating Code...
