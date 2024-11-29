@@ -10,6 +10,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform.hpp>
@@ -17,7 +18,9 @@
 
 #include "../mgl/mgl.hpp"
 
+
 ////////////////////////////////////////////////////////////////////////// MYAPP
+
 
 class MyApp : public mgl::App {
  public:
@@ -42,8 +45,8 @@ class MyApp : public mgl::App {
 
 void MyApp::createShaderProgram() {
   Shaders = std::make_unique<mgl::ShaderProgram>();
-  Shaders->addShader(GL_VERTEX_SHADER, "clip-vs.glsl");
-  Shaders->addShader(GL_FRAGMENT_SHADER, "clip-fs.glsl");
+  Shaders->addShader(GL_VERTEX_SHADER, "shaders/clip-vs.glsl");
+  Shaders->addShader(GL_FRAGMENT_SHADER, "shaders/clip-fs.glsl");
 
   Shaders->addAttribute(mgl::POSITION_ATTRIBUTE, POSITION);
   Shaders->addAttribute(mgl::COLOR_ATTRIBUTE, COLOR);

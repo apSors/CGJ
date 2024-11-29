@@ -45,4 +45,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\clip-fs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="src\clip-vs.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
