@@ -179,7 +179,7 @@ const glm::mat4 I(1.0f);
 const float scaleFactor = 0.4f;
 
 // Parallelogram
-const glm::mat4 M_parallelogram = glm::translate(glm::vec3(-0.8815f, 0.395f, 0.0f)) *
+const glm::mat4 M_parallelogram = glm::translate(glm::vec3(-0.8845f, 0.4f, 0.0f)) *
 glm::rotate(glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
