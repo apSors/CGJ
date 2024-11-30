@@ -17,10 +17,67 @@
 #include <memory>
 
 #include "../mgl/mgl.hpp"
+#include <vector>
 
 
-////////////////////////////////////////////////////////////////////////// MYAPP
+////////////////////////////////////////////////////////////////////////// OBJECTS
 
+class DrawableObject {
+public:
+    virtual ~DrawableObject() = default;
+    virtual void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) = 0;
+};
+
+class Parallelogram : public DrawableObject {
+private:
+    GLuint vaoId;
+
+public:
+    Parallelogram(GLuint vao) : vaoId(vao) {}
+    
+    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) override {
+        glBindVertexArray(vaoId);
+        shaders->bind();
+        glUniformMatrix4fv(matrixId, 1, GL_FALSE, glm::value_ptr(transform));
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
+        shaders->unbind();
+        glBindVertexArray(0);
+    }
+};
+
+class Square : public DrawableObject {
+private:
+    GLuint vaoId;
+
+public:
+    Square(GLuint vao) : vaoId(vao) {}
+
+    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) override {
+        glBindVertexArray(vaoId);
+        shaders->bind();
+        glUniformMatrix4fv(matrixId, 1, GL_FALSE, glm::value_ptr(transform));
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
+        shaders->unbind();
+        glBindVertexArray(0);
+    }
+};
+
+class RightTriangle : public DrawableObject {
+private:
+    GLuint vaoId;
+
+public:
+    RightTriangle(GLuint vao) : vaoId(vao) {}
+
+    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) override {
+        glBindVertexArray(vaoId);
+        shaders->bind();
+        glUniformMatrix4fv(matrixId, 1, GL_FALSE, glm::value_ptr(transform));
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
+        shaders->unbind();
+        glBindVertexArray(0);
+    }
+};
 
 ////////////////////////////////////////////////////////////////////////// MYAPP
 
@@ -33,11 +90,14 @@ public:
 
 private:
     const GLuint POSITION = 0, COLOR = 1;
-    GLuint VaoId, VboId[2];
     GLuint ParallelogramVaoId, SquareVaoId, RightTriangleVaoId;
     GLuint ParallelogramVboId[2], SquareVboId[2], RightTriangleVboId[2];
     std::unique_ptr<mgl::ShaderProgram> Shaders;
     GLint MatrixId;
+
+    std::unique_ptr<Parallelogram> parallelogram;
+    std::unique_ptr<Square> square;
+    std::unique_ptr<RightTriangle> rightTriangle;
 
     void createShaderProgram();
     void createBufferObjects();
@@ -45,12 +105,13 @@ private:
     void drawScene();
 };
 
+
 //////////////////////////////////////////////////////////////////////// SHADERs
 
 void MyApp::createShaderProgram() {
     Shaders = std::make_unique<mgl::ShaderProgram>();
-    Shaders->addShader(GL_VERTEX_SHADER, "shaders/clip-vs.glsl");
-    Shaders->addShader(GL_FRAGMENT_SHADER, "shaders/clip-fs.glsl");
+    Shaders->addShader(GL_VERTEX_SHADER, "clip-vs.glsl");
+    Shaders->addShader(GL_FRAGMENT_SHADER, "clip-fs.glsl");
 
     Shaders->addAttribute(mgl::POSITION_ATTRIBUTE, POSITION);
     Shaders->addAttribute(mgl::COLOR_ATTRIBUTE, COLOR);
@@ -174,8 +235,6 @@ void MyApp::destroyBufferObjects() {
 
 ////////////////////////////////////////////////////////////////////////// SCENE
 
-const glm::mat4 I(1.0f);
-
 const float scaleFactor = 0.4f;
 
 // Parallelogram
@@ -215,55 +274,21 @@ glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 
 void MyApp::drawScene() {
-    // Parallelogram 
-    glBindVertexArray(ParallelogramVaoId);
     Shaders->bind();
-    glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_parallelogram));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 0.3f, 0.3f, 1.0f); // Red
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
-    // Square 
-    glBindVertexArray(SquareVaoId);
-    glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_square));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.7f, 0.6f, 1.0f, 1.0f); //Purple
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
-    // Medium Triangle
-    glBindVertexArray(RightTriangleVaoId);
-    glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_right_triangle_1));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 1.0f, 0.6f, 1.0f); //Yellow
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
+    parallelogram->draw(Shaders, MatrixId, M_parallelogram);
 
-    // Small Triangle LEFT 
-    glBindVertexArray(RightTriangleVaoId);
-    glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_right_triangle_2));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 0.75f, 0.85f, 1.0f); //Pink
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
+    square->draw(Shaders, MatrixId, M_square);
 
-    // Small Triangle RIGHT 
-    glBindVertexArray(RightTriangleVaoId);
-    glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_right_triangle_3));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.85f, 0.6f, 0.4f, 1.0); //Orange
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
-
-    // Large Triangle SIDE
-    glBindVertexArray(RightTriangleVaoId);
-    glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_large_triangle_1));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.6f, 0.7f, 1.0f, 1.0f); //Blue
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
-
-    // Large Triangle TOP 
-    glBindVertexArray(RightTriangleVaoId);
-    glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_large_triangle_2));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.7f, 0.9f, 0.5f, 1.0f); //Green
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
+    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_1);
+    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_2);
+    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_3);
+    rightTriangle->draw(Shaders, MatrixId, M_large_triangle_1);
+    rightTriangle->draw(Shaders, MatrixId, M_large_triangle_2);
 
     Shaders->unbind();
-    glBindVertexArray(0);
 }
-
-
-
 
 
 ////////////////////////////////////////////////////////////////////// CALLBACKS
@@ -271,6 +296,10 @@ void MyApp::drawScene() {
 void MyApp::initCallback(GLFWwindow* win) {
     createBufferObjects();
     createShaderProgram();
+
+    parallelogram = std::make_unique<Parallelogram>(ParallelogramVaoId);
+    square = std::make_unique<Square>(SquareVaoId);
+    rightTriangle = std::make_unique<RightTriangle>(RightTriangleVaoId);
 }
 
 void MyApp::windowCloseCallback(GLFWwindow* win) { destroyBufferObjects(); }
