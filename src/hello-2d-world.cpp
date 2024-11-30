@@ -73,9 +73,9 @@ typedef struct {
 
 const Vertex ParallelogramVertices[] = {
     {{ 0.0f,  0.0f, 0.0f, 1.0f}},
-    {{ glm::sqrt(2.0f),  0.0f, 0.0f, 1.0f}}, 
-    {{ -0.707f,  glm::sqrt(2.0f) / 2, 0.0f, 1.0f}}, 
-    {{ glm::sqrt(2.0f) - 0.707f ,  glm::sqrt(2.0f) / 2, 0.0f, 1.0f}}  
+    {{ glm::sqrt(2.0f),  0.0f, 0.0f, 1.0f}},
+    {{ -0.707f,  glm::sqrt(2.0f) / 2, 0.0f, 1.0f}},
+    {{ glm::sqrt(2.0f) - 0.707f ,  glm::sqrt(2.0f) / 2, 0.0f, 1.0f}}
 };
 
 const GLubyte ParallelogramIndices[] = {
@@ -84,10 +84,10 @@ const GLubyte ParallelogramIndices[] = {
 };
 
 const Vertex SquareVertices[] = {
-    {{-0.5f, -0.5f, 0.0f, 1.0f}}, 
-    {{ 0.5f, -0.5f, 0.0f, 1.0f}}, 
-    {{-0.5f,  0.5f, 0.0f, 1.0f}}, 
-    {{ 0.5f,  0.5f, 0.0f, 1.0f}}  
+    {{-0.5f, -0.5f, 0.0f, 1.0f}},
+    {{ 0.5f, -0.5f, 0.0f, 1.0f}},
+    {{-0.5f,  0.5f, 0.0f, 1.0f}},
+    {{ 0.5f,  0.5f, 0.0f, 1.0f}}
 };
 
 const GLubyte SquareIndices[] = {
@@ -96,14 +96,14 @@ const GLubyte SquareIndices[] = {
 };
 
 const Vertex RightTriangleVertices[] = {
-    {{-0.5f, -0.5f, 0.0f, 1.0f}}, 
-    {{ 0.5f, -0.5f, 0.0f, 1.0f}}, 
-    {{-0.5f,  0.5f, 0.0f, 1.0f}}  
+    {{-0.5f, -0.5f, 0.0f, 1.0f}},
+    {{ 0.5f, -0.5f, 0.0f, 1.0f}},
+    {{-0.5f,  0.5f, 0.0f, 1.0f}}
 };
 
 const GLubyte RightTriangleIndices[] = {
     0, 1, 2
-}; 
+};
 
 void MyApp::createBufferObjects() {
     //Parallelogram
@@ -176,91 +176,93 @@ void MyApp::destroyBufferObjects() {
 
 const glm::mat4 I(1.0f);
 
-const float scaleFactor = 0.5f; 
+const float scaleFactor = 0.4f;
 
 // Parallelogram
-const glm::mat4 M_parallelogram = glm::translate(glm::vec3(0.0005f, -0.6625f, 0.0f)) *
-glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f)); 
+const glm::mat4 M_parallelogram = glm::translate(glm::vec3(-0.8815f, 0.395f, 0.0f)) *
+glm::rotate(glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Medium Triangle
-const glm::mat4 M_right_triangle_1 = glm::translate(glm::vec3(-0.3515f, -0.3105f, 0.0f)) *
-glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+const glm::mat4 M_right_triangle_1 = glm::translate(glm::vec3(0.5975f, 0.2825f, 0.0f)) *
+glm::rotate(glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(glm::sqrt(2.0f) * scaleFactor, glm::sqrt(2.0f) * scaleFactor, 1.0f));
 
 // Small Triangle LEFT
-const glm::mat4 M_right_triangle_2 = glm::translate(glm::vec3(-0.705f, 0.395f, 0.0f)) *
-glm::rotate(glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f)); 
+const glm::mat4 M_right_triangle_2 = glm::translate(glm::vec3(-0.6250f, -0.5900f, 0.0f)) *
+glm::rotate(glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Small Triangle RIGHT
-const glm::mat4 M_right_triangle_3 = glm::translate(glm::vec3(0.0025f, -0.315f, 0.0f)) *
-glm::rotate(glm::radians(-135.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f)); 
+const glm::mat4 M_right_triangle_3 = glm::translate(glm::vec3(0.1215f, -0.5935f, 0.0f)) *
+glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
-// Large Triangle SIDE
-const glm::mat4 M_large_triangle_1 = glm::translate(glm::vec3(0.705f, 0.045f, 0.0f)) *
-glm::rotate(glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));  
+// Large Triangle BOTTOM
+const glm::mat4 M_large_triangle_1 = glm::translate(glm::vec3(-0.2500f, 0.0f, 0.0f)) *
+glm::rotate(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
 
 // Large Triangle TOP
-const glm::mat4 M_large_triangle_2 = glm::translate(glm::vec3(0.0f, 0.75f, 0.0f)) *
-glm::rotate(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f)); 
+const glm::mat4 M_large_triangle_2 = glm::translate(glm::vec3(-0.0850f, 0.4f, 0.0f)) *
+glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
 
 // Square
-const glm::mat4 M_square = glm::translate(glm::vec3(-0.35f, 0.04f, 0.0f)) *
+const glm::mat4 M_square = glm::translate(glm::vec3(0.3150f, 0.2825f, 0.0f)) *
 glm::rotate(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f)); 
+glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 
 void MyApp::drawScene() {
-    // Parallelogram
+    // Parallelogram 
     glBindVertexArray(ParallelogramVaoId);
     Shaders->bind();
     glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_parallelogram));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 0.0f, 0.0f, 1.0f); //Red
+    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 0.3f, 0.3f, 1.0f); // Red
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
-    // Square
+    // Square 
     glBindVertexArray(SquareVaoId);
     glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_square));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.0f, 1.0f, 0.0f, 1.0f); //Green
+    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.7f, 0.6f, 1.0f, 1.0f); //Purple
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
     // Medium Triangle
     glBindVertexArray(RightTriangleVaoId);
     glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_right_triangle_1));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.0f, 0.0f, 1.0f, 1.0f); //Blue
+    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 1.0f, 0.6f, 1.0f); //Yellow
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
-    // Small Triangle LEFT
+    // Small Triangle LEFT 
     glBindVertexArray(RightTriangleVaoId);
     glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_right_triangle_2));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 1.0f, 0.0f, 1.0f); //Yellow
+    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 0.75f, 0.85f, 1.0f); //Pink
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
-    // Small Triangle RIGHT
+    // Small Triangle RIGHT 
     glBindVertexArray(RightTriangleVaoId);
     glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_right_triangle_3));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.0f, 1.0f, 1.0f, 1.0f); //Cyan 
+    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.85f, 0.6f, 0.4f, 1.0); //Orange
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
     // Large Triangle SIDE
     glBindVertexArray(RightTriangleVaoId);
     glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_large_triangle_1));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 0.0f, 1.0f, 1.0f); //Magenta
+    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.6f, 0.7f, 1.0f, 1.0f); //Blue
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
-    // Large Triangle TOP
+    // Large Triangle TOP 
     glBindVertexArray(RightTriangleVaoId);
     glUniformMatrix4fv(MatrixId, 1, GL_FALSE, glm::value_ptr(M_large_triangle_2));
-    glUniform4f(Shaders->Uniforms["objectColor"].index, 1.0f, 1.0f, 1.0f, 1.0f); //White
+    glUniform4f(Shaders->Uniforms["objectColor"].index, 0.7f, 0.9f, 0.5f, 1.0f); //Green
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
 
     Shaders->unbind();
     glBindVertexArray(0);
 }
+
+
 
 
 
