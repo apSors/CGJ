@@ -5,8 +5,9 @@ in vec4 inColor;
 out vec4 exColor;
 
 uniform mat4 Matrix;
+uniform vec4 objectColor; 
 
 void main(void) {
     gl_Position = Matrix * inPosition;
-    exColor = inColor;
+    exColor = objectColor;
 }
