@@ -295,10 +295,6 @@ void MyApp::drawScene() {
 
     rightTriangle->draw(Shaders, MatrixId, M_right_triangle_3, glm::vec4(0.85f, 0.6f, 0.4f, 1.0f)); // Orange
 
-    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_2, glm::vec4(1.0f, 0.75f, 0.85f, 1.0f)); // Pink
-
-    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_1, glm::vec4(1.0f, 1.0f, 0.6f, 1.0f)); // Yellow
-
     square->draw(Shaders, MatrixId, M_square, glm::vec4(0.7f, 0.6f, 1.0f, 1.0f)); // Purple
 
     Shaders->unbind();
