@@ -134,9 +134,9 @@ typedef struct {
 
 const Vertex ParallelogramVertices[] = {
     {{ 0.0f,  0.0f, 0.0f, 1.0f}},
-    {{ glm::sqrt(2.0f),  0.0f, 0.0f, 1.0f}},
-    {{ -0.707f,  glm::sqrt(2.0f) / 2, 0.0f, 1.0f}},
-    {{ glm::sqrt(2.0f) - 0.707f ,  glm::sqrt(2.0f) / 2, 0.0f, 1.0f}}
+    {{ 0.0f,  -1.0f, 0.0f, 1.0f}},
+    {{ 1.0f,  -1.0f, 0.0f, 1.0f}},
+    {{ 1.0f,  -2.0f, 0.0f, 1.0f}},
 };
 
 const GLubyte ParallelogramIndices[] = {
@@ -238,8 +238,8 @@ void MyApp::destroyBufferObjects() {
 const float scaleFactor = 0.4f;
 
 // Parallelogram
-const glm::mat4 M_parallelogram = glm::translate(glm::vec3(-0.8845f, 0.4f, 0.0f)) *
-glm::rotate(glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+const glm::mat4 M_parallelogram = glm::rotate(glm::radians(-0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
+glm::translate(glm::vec3(-0.8845f, 0.8f, 0.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Medium Triangle
@@ -276,9 +276,6 @@ glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 void MyApp::drawScene() {
     Shaders->bind();
 
-
-    parallelogram->draw(Shaders, MatrixId, M_parallelogram);
-
     square->draw(Shaders, MatrixId, M_square);
 
     rightTriangle->draw(Shaders, MatrixId, M_right_triangle_1);
@@ -286,6 +283,8 @@ void MyApp::drawScene() {
     rightTriangle->draw(Shaders, MatrixId, M_right_triangle_3);
     rightTriangle->draw(Shaders, MatrixId, M_large_triangle_1);
     rightTriangle->draw(Shaders, MatrixId, M_large_triangle_2);
+
+    parallelogram->draw(Shaders, MatrixId, M_parallelogram);
 
     Shaders->unbind();
 }
