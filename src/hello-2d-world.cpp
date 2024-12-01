@@ -25,8 +25,9 @@
 class DrawableObject {
 public:
     virtual ~DrawableObject() = default;
-    virtual void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) = 0;
+    virtual void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform, const glm::vec4& color) = 0;
 };
+
 
 class Parallelogram : public DrawableObject {
 private:
@@ -34,11 +35,12 @@ private:
 
 public:
     Parallelogram(GLuint vao) : vaoId(vao) {}
-    
-    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) override {
+
+    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform, const glm::vec4& color) override {
         glBindVertexArray(vaoId);
         shaders->bind();
         glUniformMatrix4fv(matrixId, 1, GL_FALSE, glm::value_ptr(transform));
+        glUniform4f(shaders->Uniforms["objectColor"].index, color.r, color.g, color.b, color.a);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
         shaders->unbind();
         glBindVertexArray(0);
@@ -52,10 +54,11 @@ private:
 public:
     Square(GLuint vao) : vaoId(vao) {}
 
-    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) override {
+    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform, const glm::vec4& color) override {
         glBindVertexArray(vaoId);
         shaders->bind();
         glUniformMatrix4fv(matrixId, 1, GL_FALSE, glm::value_ptr(transform));
+        glUniform4f(shaders->Uniforms["objectColor"].index, color.r, color.g, color.b, color.a);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
         shaders->unbind();
         glBindVertexArray(0);
@@ -69,15 +72,17 @@ private:
 public:
     RightTriangle(GLuint vao) : vaoId(vao) {}
 
-    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform) override {
+    void draw(const std::unique_ptr<mgl::ShaderProgram>& shaders, GLint matrixId, const glm::mat4& transform, const glm::vec4& color) override {
         glBindVertexArray(vaoId);
         shaders->bind();
         glUniformMatrix4fv(matrixId, 1, GL_FALSE, glm::value_ptr(transform));
+        glUniform4f(shaders->Uniforms["objectColor"].index, color.r, color.g, color.b, color.a);
         glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(0));
         shaders->unbind();
         glBindVertexArray(0);
     }
 };
+
 
 ////////////////////////////////////////////////////////////////////////// MYAPP
 
@@ -276,16 +281,19 @@ glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 void MyApp::drawScene() {
     Shaders->bind();
 
+    parallelogram->draw(Shaders, MatrixId, M_parallelogram, glm::vec4(1.0f, 0.3f, 0.3f, 1.0f)); // Red
 
-    parallelogram->draw(Shaders, MatrixId, M_parallelogram);
+    square->draw(Shaders, MatrixId, M_square, glm::vec4(0.7f, 0.6f, 1.0f, 1.0f)); // Purple
 
-    square->draw(Shaders, MatrixId, M_square);
+    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_1, glm::vec4(1.0f, 1.0f, 0.6f, 1.0f)); // Yellow
 
-    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_1);
-    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_2);
-    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_3);
-    rightTriangle->draw(Shaders, MatrixId, M_large_triangle_1);
-    rightTriangle->draw(Shaders, MatrixId, M_large_triangle_2);
+    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_2, glm::vec4(1.0f, 0.75f, 0.85f, 1.0f)); // Pink
+
+    rightTriangle->draw(Shaders, MatrixId, M_right_triangle_3, glm::vec4(0.85f, 0.6f, 0.4f, 1.0f)); // Orange
+
+    rightTriangle->draw(Shaders, MatrixId, M_large_triangle_1, glm::vec4(0.6f, 0.7f, 1.0f, 1.0f)); // Blue
+
+    rightTriangle->draw(Shaders, MatrixId, M_large_triangle_2, glm::vec4(0.7f, 0.9f, 0.5f, 1.0f)); // Green
 
     Shaders->unbind();
 }
@@ -310,6 +318,7 @@ void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
 
 void MyApp::displayCallback(GLFWwindow* win, double elapsed) { drawScene(); }
 
+
 /////////////////////////////////////////////////////////////////////////// MAIN
 
 int main(int argc, char* argv[]) {
@@ -321,5 +330,6 @@ int main(int argc, char* argv[]) {
     engine.run();
     exit(EXIT_SUCCESS);
 }
+
 
 //////////////////////////////////////////////////////////////////////////// END
