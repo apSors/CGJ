@@ -240,41 +240,42 @@ void MyApp::destroyBufferObjects() {
 
 ////////////////////////////////////////////////////////////////////////// SCENE
 
-const float scaleFactor = 1.0f / 2.0f;
+const float scaleFactor = 1.0f / 2.5f;
 
+const glm::mat4 offset_center = glm::translate(glm::vec3((-glm::sqrt(2.0f) + 1) / 2.0f * scaleFactor, 0.0f, 0.0f));
 
 // Parallelogram
-const glm::mat4 M_parallelogram = glm::translate(glm::vec3(-2.0f * scaleFactor, 2.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_parallelogram = offset_center * glm::translate(glm::vec3(-2.0f * scaleFactor, 2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Medium Triangle
-const glm::mat4 M_right_triangle_1 = glm::translate(glm::vec3(1.0f * scaleFactor, glm::sqrt(2.0f) * scaleFactor, 0.0f)) *
+const glm::mat4 M_right_triangle_1 = offset_center * glm::translate(glm::vec3(1.0f * scaleFactor, glm::sqrt(2.0f) * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(-180.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
+glm::scale(glm::vec3(glm::sqrt(2.0f) * scaleFactor, glm::sqrt(2.0f) * scaleFactor, 1.0f));
 
 // Small Triangle LEFT
-const glm::mat4 M_right_triangle_2 = glm::translate(glm::vec3(((-2.0f * glm::sqrt(2.0f)) + 1.0f) * scaleFactor, -2.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_right_triangle_2 = offset_center * glm::translate(glm::vec3(((-2.0f * glm::sqrt(2.0f)) + 1.0f) * scaleFactor, -2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Small Triangle RIGHT
-const glm::mat4 M_right_triangle_3 = glm::translate(glm::vec3(1.0f * scaleFactor, -2.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_right_triangle_3 = offset_center * glm::translate(glm::vec3(1.0f * scaleFactor, -2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Large Triangle BOTTOM
-const glm::mat4 M_large_triangle_1 = glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f, 0.0f)) *
+const glm::mat4 M_large_triangle_1 = offset_center * glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f, 0.0f)) *
 glm::rotate(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
 
 // Large Triangle TOP
-const glm::mat4 M_large_triangle_2 = glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f, 0.0f)) *
+const glm::mat4 M_large_triangle_2 = offset_center * glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
 
 // Square
-const glm::mat4 M_square = glm::translate(glm::vec3(1.0f * scaleFactor, 0.0, 0.0f)) *
+const glm::mat4 M_square = offset_center * glm::translate(glm::vec3(1.0f * scaleFactor, 0.0, 0.0f)) *
 glm::rotate(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
