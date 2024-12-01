@@ -240,10 +240,10 @@ void MyApp::destroyBufferObjects() {
 
 ////////////////////////////////////////////////////////////////////////// SCENE
 
-const float scaleFactor = 1.0f / 3.0f;
+const float scaleFactor = 1.0f / 2.0f;
 
 
-// Parallelogram DONE
+// Parallelogram
 const glm::mat4 M_parallelogram = glm::translate(glm::vec3(-2.0f * scaleFactor, 2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
@@ -258,17 +258,17 @@ const glm::mat4 M_right_triangle_2 = glm::translate(glm::vec3(((-2.0f * glm::sqr
 glm::rotate(glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
-// Small Triangle RIGHT DONE
+// Small Triangle RIGHT
 const glm::mat4 M_right_triangle_3 = glm::translate(glm::vec3(1.0f * scaleFactor, -2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
-// Large Triangle BOTTOM DONE
+// Large Triangle BOTTOM
 const glm::mat4 M_large_triangle_1 = glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f, 0.0f)) *
 glm::rotate(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
 
-// Large Triangle TOP DONE
+// Large Triangle TOP
 const glm::mat4 M_large_triangle_2 = glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
