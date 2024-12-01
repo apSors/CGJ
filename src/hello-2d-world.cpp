@@ -139,9 +139,9 @@ typedef struct {
 
 const Vertex ParallelogramVertices[] = {
     {{ 0.0f,  0.0f, 0.0f, 1.0f}},
-    {{ -1.0f,  -1.0f, 0.0f, 1.0f}},
     {{ 0.0f,  -1.0f, 0.0f, 1.0f}},
-    {{ -1.0f,  -2.0f, 0.0f, 1.0f}},
+    {{ 1.0f,  -1.0f, 0.0f, 1.0f}},
+    {{ 1.0f,  -2.0f, 0.0f, 1.0f}},
 };
 
 const GLubyte ParallelogramIndices[] = {
@@ -243,7 +243,7 @@ void MyApp::destroyBufferObjects() {
 const float scaleFactor = 1.0f / 3.0f;
 
 // Parallelogram
-const glm::mat4 M_parallelogram = glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_parallelogram = glm::translate(glm::vec3(0.0f, 2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
@@ -253,27 +253,27 @@ glm::rotate(glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(glm::sqrt(2.0f) * scaleFactor, glm::sqrt(2.0f) * scaleFactor, 1.0f));
 
 // Small Triangle LEFT
-const glm::mat4 M_right_triangle_2 = glm::translate(glm::vec3(0.0f * scaleFactor, -1.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_right_triangle_2 = glm::translate(glm::vec3(0.0f, -2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Small Triangle RIGHT DONE
-const glm::mat4 M_right_triangle_3 = glm::translate(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_right_triangle_3 = glm::translate(glm::vec3(1.0f * scaleFactor, 0.0f, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
 // Large Triangle BOTTOM DONE
-const glm::mat4 M_large_triangle_1 = glm::translate(glm::vec3(-2.0f * scaleFactor, 0.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_large_triangle_1 = glm::translate(glm::vec3(-2.0f * scaleFactor, 0.0f, 0.0f)) *
 glm::rotate(glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
 
 // Large Triangle TOP DONE
-const glm::mat4 M_large_triangle_2 = glm::translate(glm::vec3(0.0f * scaleFactor, 2.0f * scaleFactor, 0.0f)) *
+const glm::mat4 M_large_triangle_2 = glm::translate(glm::vec3(0.0f, 2.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(2.0f * scaleFactor, 2.0f * scaleFactor, 1.0f));
 
 // Square DONE
-const glm::mat4 M_square = glm::translate(glm::vec3(0.0f * scaleFactor, 0.0, 0.0f)) *
+const glm::mat4 M_square = glm::translate(glm::vec3(0.0f, -1.0f * scaleFactor, 0.0f)) *
 glm::rotate(glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)) *
 glm::scale(glm::vec3(1.0f * scaleFactor, 1.0f * scaleFactor, 1.0f));
 
