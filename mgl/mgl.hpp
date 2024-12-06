@@ -13,6 +13,7 @@
 #include <GLFW/glfw3.h>
 
 #include "./mglApp.hpp"          // IWYU pragma: keep
+#include "./mglCamera.hpp"       // IWYU pragma: keep
 #include "./mglConventions.hpp"  // IWYU pragma: keep
 #include "./mglError.hpp"        // IWYU pragma: keep
 #include "./mglShader.hpp"       // IWYU pragma: keep

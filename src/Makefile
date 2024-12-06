@@ -11,7 +11,7 @@ LIBS := \
 	-L/usr/lib -lOpenGL -lglfw -lGLEW -lassimp \
 	-L$(ENGINEDIR) -l$(ENGINE)
 
-OUT := hello-2d-world
+OUT := hello-3d-world
 
 all : release
 
