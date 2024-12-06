@@ -1,4 +1,5 @@
 #include <glm/ext/vector_relational.hpp>
+#include <glm/ext/scalar_constants.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/color_space.hpp>

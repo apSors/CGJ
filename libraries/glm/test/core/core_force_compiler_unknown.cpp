@@ -15,7 +15,6 @@
 #elif defined(_MSC_VER)
 #	pragma warning(push)
 #	pragma warning(disable: 4201)  // nonstandard extension used : nameless struct/union
-#	pragma warning(disable: 4324)  // structure was padded due to alignment specifier
 #endif
 
 #include <glm/glm.hpp>
