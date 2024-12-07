@@ -19,6 +19,9 @@
 #include <memory>
 
 #include "../mgl/mgl.hpp"
+#include <GLFW/glfw3.h>
+#include <glm/gtc/quaternion.hpp>
+
 
 ////////////////////////////////////////////////////////////////////////// MYAPP
 
@@ -28,6 +31,8 @@ public:
     void displayCallback(GLFWwindow* win, double elapsed) override;
     void windowCloseCallback(GLFWwindow* win) override;
     void windowSizeCallback(GLFWwindow* win, int width, int height) override;
+    void cursorCallback(GLFWwindow* win, double xpos, double ypos);
+    void scrollCallback(GLFWwindow* win, double xoffset, double yoffset);
 
 private:
     const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0;
@@ -46,10 +51,13 @@ private:
     glm::vec3 targetPoint = glm::vec3(0.0f, 0.0f, 0.0f);  // The point cameras orbit around
     float orbitRadius = 5.0f;  // Radius of the orbit
     float orbitSpeed = 1.0f;   // Speed of the orbit
-    float angle1 = 0.0f;  // Angle for Camera1's orbit
-    float angle2 = 3.14f; // Angle for Camera2's orbit
+
+    glm::quat camera1Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);  // Quaternion for Camera1
+    glm::quat camera2Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);  // Quaternion for Camera2
 
     bool useCamera1 = true;  // Track the active camera
+
+    double lastX = 0.0, lastY = 0.0; // Store the last mouse position for movement
 };
 
 ////////////////////////////////////////////////////////////////// VAO, VBO, EBO
@@ -191,18 +199,27 @@ const glm::mat4 ProjectionMatrix2 =
     glm::perspective(glm::radians(30.0f), 4.0f / 3.0f, 1.0f, 15.0f);
 
 void MyApp::drawScene(double elapsed) {
-    // Update angles for orbiting
-    angle1 += orbitSpeed * elapsed;
-    angle2 -= orbitSpeed * elapsed;
+    // Update the camera's position based on the quaternion orientations
+    glm::vec3 cameraPosition1 = glm::vec3(orbitRadius * cos(glm::radians(30.0f)) * cos(glm::radians(30.0f)),
+        orbitRadius * sin(glm::radians(30.0f)),
+        orbitRadius * sin(glm::radians(30.0f)) * cos(glm::radians(30.0f)));
 
-    // Update Camera1 (orbiting in one direction)
-    glm::vec3 cameraPosition1 = glm::vec3(orbitRadius * cos(angle1), orbitRadius, orbitRadius * sin(angle1));
-    Camera1->setViewMatrix(glm::lookAt(cameraPosition1, targetPoint, glm::vec3(0.0f, 1.0f, 0.0f)));
+    // Rotate the camera based on the quaternion orientation
+    glm::mat4 camera1RotationMatrix = glm::mat4_cast(camera1Orientation);
+    glm::mat4 viewMatrix1 = glm::lookAt(cameraPosition1, targetPoint, glm::vec3(0.0f, 1.0f, 0.0f)) * camera1RotationMatrix;
+    Camera1->setViewMatrix(viewMatrix1);
+
+    // Repeat for Camera2 with its own orientation
+    glm::vec3 cameraPosition2 = glm::vec3(orbitRadius * cos(glm::radians(30.0f)) * cos(glm::radians(30.0f + 180.0f)),
+        orbitRadius * sin(glm::radians(30.0f)),
+        orbitRadius * sin(glm::radians(30.0f)) * cos(glm::radians(30.0f + 180.0f)));
+
+    glm::mat4 camera2RotationMatrix = glm::mat4_cast(camera2Orientation);
+    glm::mat4 viewMatrix2 = glm::lookAt(cameraPosition2, targetPoint, glm::vec3(0.0f, 1.0f, 0.0f)) * camera2RotationMatrix;
+    Camera2->setViewMatrix(viewMatrix2);
+
+    // Set the projection matrices (unchanged)
     Camera1->setProjectionMatrix(ProjectionMatrix1);
-
-    // Update Camera2 (orbiting in the opposite direction)
-    glm::vec3 cameraPosition2 = glm::vec3(orbitRadius * cos(angle2), orbitRadius, orbitRadius * sin(angle2));
-    Camera2->setViewMatrix(glm::lookAt(cameraPosition2, targetPoint, glm::vec3(0.0f, 1.0f, 0.0f)));
     Camera2->setProjectionMatrix(ProjectionMatrix2);
 
     // Render scene from Camera1's perspective
@@ -223,12 +240,50 @@ void MyApp::drawScene(double elapsed) {
 
 ////////////////////////////////////////////////////////////////////// CALLBACKS
 
+static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
+    mgl::Engine::getInstance().getApp()->cursorCallback(window, xpos, ypos);
+}
+
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    mgl::Engine::getInstance().getApp()->scrollCallback(window, xoffset, yoffset);
+}
+
+void MyApp::cursorCallback(GLFWwindow* win, double xpos, double ypos) {
+    if (glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        float deltaX = static_cast<float>(xpos - lastX);
+        float deltaY = static_cast<float>(ypos - lastY);
+
+        float sensitivity = 0.01f;
+
+        glm::quat rotationX = glm::angleAxis(-deltaX * sensitivity, glm::vec3(0.0f, 1.0f, 0.0f)); // Y-axis rotation (left-right)
+        glm::quat rotationY = glm::angleAxis(deltaY * sensitivity, glm::vec3(1.0f, 0.0f, 0.0f)); // X-axis rotation (up-down)
+
+        camera1Orientation = glm::normalize(rotationX * camera1Orientation * rotationY);
+        camera2Orientation = glm::normalize(rotationX * camera2Orientation * rotationY);
+    }
+
+    lastX = xpos;
+    lastY = ypos;
+}
+
+void MyApp::scrollCallback(GLFWwindow* win, double xoffset, double yoffset) {
+    orbitRadius -= static_cast<float>(yoffset) * 0.1f;
+
+    if (orbitRadius < 2.0f) orbitRadius = 2.0f;
+    if (orbitRadius > 20.0f) orbitRadius = 20.0f;
+}
+
 void MyApp::initCallback(GLFWwindow* win) {
     createBufferObjects();
     createShaderProgram();
 
     Camera1 = std::make_unique<mgl::Camera>(UBO_BP);
     Camera2 = std::make_unique<mgl::Camera>(UBO_BP);
+
+    glfwSetWindowUserPointer(win, this);
+
+    glfwSetCursorPosCallback(win, cursor_pos_callback);
+    glfwSetScrollCallback(win, scroll_callback);
 }
 
 void MyApp::windowCloseCallback(GLFWwindow *win) { destroyBufferObjects(); }
