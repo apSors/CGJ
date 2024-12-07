@@ -24,23 +24,32 @@
 
 class MyApp : public mgl::App {
 public:
-  void initCallback(GLFWwindow *win) override;
-  void displayCallback(GLFWwindow *win, double elapsed) override;
-  void windowCloseCallback(GLFWwindow *win) override;
-  void windowSizeCallback(GLFWwindow *win, int width, int height) override;
+    void initCallback(GLFWwindow* win) override;
+    void displayCallback(GLFWwindow* win, double elapsed) override;
+    void windowCloseCallback(GLFWwindow* win) override;
+    void windowSizeCallback(GLFWwindow* win, int width, int height) override;
 
 private:
-  const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0;
-  GLuint VaoId;
+    const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0;
+    GLuint VaoId;
 
-  std::unique_ptr<mgl::ShaderProgram> Shaders = nullptr;
-  std::unique_ptr<mgl::Camera> Camera = nullptr;
-  GLint ModelMatrixId;
+    std::unique_ptr<mgl::ShaderProgram> Shaders = nullptr;
+    std::unique_ptr<mgl::Camera> Camera1 = nullptr;
+    std::unique_ptr<mgl::Camera> Camera2 = nullptr;
+    GLint ModelMatrixId;
 
-  void createShaderProgram();
-  void createBufferObjects();
-  void destroyBufferObjects();
-  void drawScene();
+    void createShaderProgram();
+    void createBufferObjects();
+    void destroyBufferObjects();
+    void drawScene(double elapsed);
+
+    glm::vec3 targetPoint = glm::vec3(0.0f, 0.0f, 0.0f);  // The point cameras orbit around
+    float orbitRadius = 5.0f;  // Radius of the orbit
+    float orbitSpeed = 1.0f;   // Speed of the orbit
+    float angle1 = 0.0f;  // Angle for Camera1's orbit
+    float angle2 = 3.14f; // Angle for Camera2's orbit
+
+    bool useCamera1 = true;  // Track the active camera
 };
 
 ////////////////////////////////////////////////////////////////// VAO, VBO, EBO
@@ -181,26 +190,45 @@ const glm::mat4 ProjectionMatrix1 =
 const glm::mat4 ProjectionMatrix2 =
     glm::perspective(glm::radians(30.0f), 4.0f / 3.0f, 1.0f, 15.0f);
 
-void MyApp::drawScene() {
-  Camera->setViewMatrix(ViewMatrix1);
-  Camera->setProjectionMatrix(ProjectionMatrix1);
+void MyApp::drawScene(double elapsed) {
+    // Update angles for orbiting
+    angle1 += orbitSpeed * elapsed;
+    angle2 -= orbitSpeed * elapsed;
 
-  glBindVertexArray(VaoId);
-  Shaders->bind();
+    // Update Camera1 (orbiting in one direction)
+    glm::vec3 cameraPosition1 = glm::vec3(orbitRadius * cos(angle1), orbitRadius, orbitRadius * sin(angle1));
+    Camera1->setViewMatrix(glm::lookAt(cameraPosition1, targetPoint, glm::vec3(0.0f, 1.0f, 0.0f)));
+    Camera1->setProjectionMatrix(ProjectionMatrix1);
 
-  glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
-  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    // Update Camera2 (orbiting in the opposite direction)
+    glm::vec3 cameraPosition2 = glm::vec3(orbitRadius * cos(angle2), orbitRadius, orbitRadius * sin(angle2));
+    Camera2->setViewMatrix(glm::lookAt(cameraPosition2, targetPoint, glm::vec3(0.0f, 1.0f, 0.0f)));
+    Camera2->setProjectionMatrix(ProjectionMatrix2);
 
-  Shaders->unbind();
-  glBindVertexArray(0);
+    // Render scene from Camera1's perspective
+    glBindVertexArray(VaoId);
+    Shaders->bind();
+    glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    Shaders->unbind();
+
+    // Render scene from Camera2's perspective (if needed)
+    Shaders->bind();
+    glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    Shaders->unbind();
+    glBindVertexArray(0);
 }
+
 
 ////////////////////////////////////////////////////////////////////// CALLBACKS
 
-void MyApp::initCallback(GLFWwindow *win) {
-  createBufferObjects();
-  createShaderProgram();
-  Camera = std::make_unique<mgl::Camera>(UBO_BP);
+void MyApp::initCallback(GLFWwindow* win) {
+    createBufferObjects();
+    createShaderProgram();
+
+    Camera1 = std::make_unique<mgl::Camera>(UBO_BP);
+    Camera2 = std::make_unique<mgl::Camera>(UBO_BP);
 }
 
 void MyApp::windowCloseCallback(GLFWwindow *win) { destroyBufferObjects(); }
@@ -209,8 +237,9 @@ void MyApp::windowSizeCallback(GLFWwindow *win, int winx, int winy) {
   glViewport(0, 0, winx, winy);
 }
 
-void MyApp::displayCallback(GLFWwindow *win, double elapsed) { drawScene(); }
-
+void MyApp::displayCallback(GLFWwindow* win, double elapsed) {
+    drawScene(elapsed);
+}
 /////////////////////////////////////////////////////////////////////////// MAIN
 
 int main(int argc, char *argv[]) {
