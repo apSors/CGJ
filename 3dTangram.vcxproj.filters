@@ -3,60 +3,72 @@
   <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="mgl">
+      <UniqueIdentifier>{619b6007-f509-4846-a39e-c40f8da73455}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mgl\mgl.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mgl\mglApp.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mgl\mglCamera.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mgl\mglConventions.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mgl\mglError.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mgl\mglShader.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="mgl\mglApp.cpp">
+    <ClCompile Include="mesh-loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mgl\mglCamera.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\mgl\mglApp.cpp">
+      <Filter>mgl</Filter>
     </ClCompile>
-    <ClCompile Include="mgl\mglError.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\mgl\mglCamera.cpp">
+      <Filter>mgl</Filter>
     </ClCompile>
-    <ClCompile Include="mgl\mglShader.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\mgl\mglError.cpp">
+      <Filter>mgl</Filter>
     </ClCompile>
-    <ClCompile Include="3dTangram\hello-3d-world.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\mgl\mglMesh.cpp">
+      <Filter>mgl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mgl\mglShader.cpp">
+      <Filter>mgl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="3dTangram\color-fs.glsl">
-      <Filter>Source Files</Filter>
+    <None Include="cube-fs.glsl">
+      <Filter>Resource Files</Filter>
     </None>
-    <None Include="3dTangram\color-vs.glsl">
-      <Filter>Source Files</Filter>
+    <None Include="cube-vs.glsl">
+      <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\mgl\mglApp.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglCamera.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglConventions.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglError.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglMesh.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglScenegraph.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mglShader.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mgl\mgl.hpp">
+      <Filter>mgl</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
