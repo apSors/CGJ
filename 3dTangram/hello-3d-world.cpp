@@ -33,6 +33,7 @@ public:
     void windowSizeCallback(GLFWwindow* win, int width, int height) override;
     void cursorCallback(GLFWwindow* win, double xpos, double ypos);
     void scrollCallback(GLFWwindow* win, double xoffset, double yoffset);
+    void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
 
 private:
     const GLuint POSITION = 0, COLOR = 1, UBO_BP = 0;
@@ -56,6 +57,7 @@ private:
     glm::quat camera2Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);  // Quaternion for Camera2
 
     bool useCamera1 = true;  // Track the active camera
+    bool isOrthographic = true;  // Flag to track the current projection mode
 
     double lastX = 0.0, lastY = 0.0; // Store the last mouse position for movement
 };
@@ -218,9 +220,15 @@ void MyApp::drawScene(double elapsed) {
     glm::mat4 viewMatrix2 = glm::lookAt(cameraPosition2, targetPoint, glm::vec3(0.0f, 1.0f, 0.0f)) * camera2RotationMatrix;
     Camera2->setViewMatrix(viewMatrix2);
 
-    // Set the projection matrices (unchanged)
-    Camera1->setProjectionMatrix(ProjectionMatrix1);
-    Camera2->setProjectionMatrix(ProjectionMatrix2);
+    // Set the projection matrix based on the current projection mode
+    if (isOrthographic) {
+        Camera1->setProjectionMatrix(ProjectionMatrix1);
+        Camera2->setProjectionMatrix(ProjectionMatrix1);
+    }
+    else {
+        Camera1->setProjectionMatrix(ProjectionMatrix2);
+        Camera2->setProjectionMatrix(ProjectionMatrix2);
+    }
 
     // Render scene from Camera1's perspective
     glBindVertexArray(VaoId);
@@ -229,7 +237,8 @@ void MyApp::drawScene(double elapsed) {
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     Shaders->unbind();
 
-    // Render scene from Camera2's perspective (if needed)
+    // Render scene from the active camera's perspective
+    glBindVertexArray(VaoId);
     Shaders->bind();
     glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -238,7 +247,12 @@ void MyApp::drawScene(double elapsed) {
 }
 
 
+
 ////////////////////////////////////////////////////////////////////// CALLBACKS
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    mgl::Engine::getInstance().getApp()->keyCallback(window, key, scancode, action, mods);
+}
 
 static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
     mgl::Engine::getInstance().getApp()->cursorCallback(window, xpos, ypos);
@@ -246,6 +260,12 @@ static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
 
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     mgl::Engine::getInstance().getApp()->scrollCallback(window, xoffset, yoffset);
+}
+
+void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+        isOrthographic = !isOrthographic; 
+    }
 }
 
 void MyApp::cursorCallback(GLFWwindow* win, double xpos, double ypos) {
@@ -284,6 +304,7 @@ void MyApp::initCallback(GLFWwindow* win) {
 
     glfwSetCursorPosCallback(win, cursor_pos_callback);
     glfwSetScrollCallback(win, scroll_callback);
+    glfwSetKeyCallback(win, key_callback);
 }
 
 void MyApp::windowCloseCallback(GLFWwindow *win) { destroyBufferObjects(); }
