@@ -31,7 +31,7 @@ class MyApp : public mgl::App {
   mgl::ShaderProgram *Shaders = nullptr;
   mgl::Camera *Camera = nullptr;
   GLint ModelMatrixId; 
-  std::vector<glm::mat4> ModelMatrices;     // Individual transformations
+  std::vector<glm::mat4> ModelMatrices;
   std::vector<mgl::Mesh*> Meshes;
 
   void createMeshes();
@@ -45,32 +45,30 @@ class MyApp : public mgl::App {
 void MyApp::createMeshes() {
     std::string mesh_dir = "assets/";
 
-    // List of mesh files to load
     std::vector<std::string> mesh_files = {
-      /*  "medium_triangle.obj",
+        "medium_triangle.obj",
         "large_triangle_top.obj",
         "large_triangle_bottom.obj",
         "square.obj",
         "small_triangle_left.obj",
         "small_triangle_right.obj",
-        "parallelogram.obj", */
-        "tangram.obj"
+        "parallelogram.obj"
     };
 
     for (size_t i = 0; i < mesh_files.size(); ++i) {
         std::string mesh_fullname = mesh_dir + mesh_files[i];
 
-        // Create and load each mesh
         mgl::Mesh* mesh = new mgl::Mesh();
         mesh->joinIdenticalVertices();
         mesh->create(mesh_fullname);
 
-        // Add the mesh to the container
         Meshes.push_back(mesh);
 
-        // Add a unique transformation matrix for each mesh
-        glm::mat4 translation = glm::translate(glm::mat4(1.0f), glm::vec3(i * 2.0f, 0.0f, 0.0f));
-        ModelMatrices.push_back(translation);
+        glm::mat4 transformation = glm::mat4(1.0f); 
+
+        // transformation = glm::translate(transformation, glm::vec3(1.0f, 1.0f, 1.0f));  // future transformations
+
+        ModelMatrices.push_back(transformation);
     }
 }
 
@@ -108,8 +106,6 @@ void MyApp::createShaderPrograms() {
     ModelMatrixId = Shaders->Uniforms[mgl::MODEL_MATRIX].index;
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////// CAMERA
 
 // Eye(5,5,5) Center(0,0,0) Up(0,1,0)
@@ -132,7 +128,6 @@ const glm::mat4 ProjectionMatrix2 =
 
 void MyApp::createCamera() {
     Camera = new mgl::Camera(UBO_BP);
-    // Set the projection matrix (this remains the same)
     Camera->setProjectionMatrix(ProjectionMatrix2);
     Camera->setViewMatrix(ViewMatrix2);
     Camera->adjustDistance(-5.0f);
@@ -143,10 +138,10 @@ glm::mat4 ModelMatrix(1.0f);
 
 void MyApp::drawScene() {
     Shaders->bind();
-
     for (size_t i = 0; i < Meshes.size(); ++i) {
-        glm::mat4 localModelMatrix = glm::translate(ModelMatrix, glm::vec3(i * 2.0f, 0.0f, 0.0f)); // Example: Position meshes in a line
+        glm::mat4 localModelMatrix = ModelMatrices[i];
         glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(localModelMatrix));
+
         Meshes[i]->draw();
     }
 
@@ -173,7 +168,6 @@ void MyApp::windowSizeCallback(GLFWwindow *win, int winx, int winy) {
   glViewport(0, 0, winx, winy);
   // change projection matrices to maintain aspect ratio
 }
-
 
 void MyApp::displayCallback(GLFWwindow *win, double elapsed) { drawScene(); }
 

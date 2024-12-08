@@ -30,7 +30,9 @@ class Camera {
 
   glm::vec3 position;
   glm::quat orientation;
-  float radius = 5.0f; // Distance from the origin
+  float radius = 5.0f;
+
+  float left, right, bottom, top, nearPlane, farPlane;
 
   double lastX = 0.0, lastY = 0.0;
   bool dragging = false;
