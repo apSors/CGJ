@@ -131,11 +131,12 @@ const glm::mat4 ProjectionMatrix2 =
     glm::perspective(glm::radians(100.0f), 640.0f / 480.0f, 1.0f, 50.0f);
 
 void MyApp::createCamera() {
-  Camera = new mgl::Camera(UBO_BP);
-  Camera->setProjectionMatrix(ProjectionMatrix2);
-  Camera->setViewMatrix(ViewMatrix1);
+    Camera = new mgl::Camera(UBO_BP);
+    // Set the projection matrix (this remains the same)
+    Camera->setProjectionMatrix(ProjectionMatrix2);
+    Camera->setViewMatrix(ViewMatrix2);
+    Camera->adjustDistance(-5.0f);
 }
-
 /////////////////////////////////////////////////////////////////////////// DRAW
 
 glm::mat4 ModelMatrix(1.0f);

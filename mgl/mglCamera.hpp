@@ -28,8 +28,8 @@ class Camera {
   glm::mat4 ViewMatrix;
   glm::mat4 ProjectionMatrix;
 
-  glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f); // Initial position
-  glm::quat orientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)); // Initial orientation
+  glm::vec3 position;
+  glm::quat orientation;
   float radius = 5.0f; // Distance from the origin
 
   double lastX = 0.0, lastY = 0.0;
@@ -44,6 +44,13 @@ class Camera {
   void setProjectionMatrix(const glm::mat4 &projectionmatrix);
 
   void updateViewMatrix();
+  void adjustDistance(float delta);
+
+  glm::vec3 getPosition() const { return position; }
+  void setPosition(const glm::vec3& newPosition) { position = newPosition; }
+
+  glm::quat getOrientation() const { return orientation; }
+  void setOrientation(const glm::quat& newOrientation) { orientation = newOrientation; }
 
   void onMouseMove(GLFWwindow* window, double xpos, double ypos);
   void onScroll(GLFWwindow* window, double xoffset, double yoffset);
