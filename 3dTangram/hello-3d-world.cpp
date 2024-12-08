@@ -115,10 +115,12 @@ const glm::mat4 ViewMatrix1 =
 glm::lookAt(glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f));
 
-// Eye(-5,-5,-5) Center(0,0,0) Up(0,1,0)
+// Camera at (0.0f, 50.0f, 50.0f), even farther from the object
 const glm::mat4 ViewMatrix2 =
-glm::lookAt(glm::vec3(-5.0f, -5.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f));
+glm::lookAt(glm::vec3(0.0f, 50.0f, 50.0f),  // Eye position farther from the object
+    glm::vec3(0.0f, 0.0f, 0.0f),   // Center (looking towards the origin)
+    glm::vec3(0.0f, 1.0f, 0.0f));  // Up vector (keeping the view upright)
+
 
 // Orthographic LeftRight(-2,2) BottomTop(-2,2) NearFar(1,10)
 const glm::mat4 ProjectionMatrix1 =
@@ -131,6 +133,7 @@ glm::perspective(glm::radians(100.0f), 640.0f / 480.0f, 1.0f, 50.0f);
 void MyApp::createCamera() {
     Camera = new mgl::Camera(UBO_BP);
     Camera->setProjectionMatrix(ProjectionMatrix2);
+    const glm::mat4 initialViewMatrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     Camera->setViewMatrix(ViewMatrix2);
     Camera->adjustDistance(-5.0f);
 }
