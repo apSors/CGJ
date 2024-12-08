@@ -32,6 +32,7 @@ class Camera {
   glm::quat orientation;
   float radius = 5.0f;
 
+  bool isPerspective;
   float left, right, bottom, top, nearPlane, farPlane;
 
   double lastX = 0.0, lastY = 0.0;
