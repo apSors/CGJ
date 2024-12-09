@@ -43,7 +43,6 @@ private:
     void createShaderPrograms();
     void createCameras();
     void drawScene();
-    void createBoxConfiguration();
 
     float animationProgress = 0.0f;
     bool isAnimatingForward = false;
