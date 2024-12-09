@@ -13,6 +13,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include "../mgl/mgl.hpp"
 
@@ -25,19 +27,28 @@ public:
     void windowSizeCallback(GLFWwindow* win, int width, int height) override;
     void cursorCallback(GLFWwindow* win, double xpos, double ypos);
     void scrollCallback(GLFWwindow* win, double xoffset, double yoffset);
+    void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
 
 private:
     const GLuint UBO_BP = 0;
     mgl::ShaderProgram* Shaders = nullptr;
     mgl::Camera* Camera = nullptr;
+    mgl::Camera* Camera2 = nullptr;
     GLint ModelMatrixId;
+    std::vector<glm::mat4> BoxModelMatrices;
     std::vector<glm::mat4> ModelMatrices;
     std::vector<mgl::Mesh*> Meshes;
 
     void createMeshes();
     void createShaderPrograms();
-    void createCamera();
+    void createCameras();
     void drawScene();
+    void createBoxConfiguration();
+
+    float animationProgress = 0.0f;
+    bool isAnimatingForward = false;
+    bool isAnimating = false;
+
 };
 
 ///////////////////////////////////////////////////////////////////////// MESHES
@@ -55,6 +66,11 @@ void MyApp::createMeshes() {
         "parallelogram.obj"
     };
 
+    ModelMatrices.clear();
+    BoxModelMatrices.clear();
+    Meshes.clear();
+
+
     for (size_t i = 0; i < mesh_files.size(); ++i) {
         std::string mesh_fullname = mesh_dir + mesh_files[i];
 
@@ -64,11 +80,47 @@ void MyApp::createMeshes() {
 
         Meshes.push_back(mesh);
 
-        glm::mat4 transformation = glm::mat4(1.0f);
-
-        // transformation = glm::translate(transformation, glm::vec3(1.0f, 1.0f, 1.0f));  // future transformations
-
+        glm::mat4 transformation = glm::mat4(1.0f); 
+        glm::mat4 localRotation = glm::mat4(1.0f); 
         ModelMatrices.push_back(transformation);
+
+        glm::mat4 boxTransformation = glm::mat4(1.0f); // Initialize as identity matrix
+
+        // Set transformations for the box configuration (simple arrangement of the pieces inside the box)
+        switch (i) {
+        case 0:  // Medium Triangle (This piece will have the self-rotation)
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, 1.0f, 0.0f))*
+                glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            break;
+        case 1:  // Large Triangle (top)
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, 0.0f, 0.0f)) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(-225.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            break;
+        case 2:  // Large Triangle (bottom)
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, 0.0f, 1.0f)) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            break;
+        case 3:  // Square
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(-sqrt(2), 0.0f, 2+sqrt(2))) *
+                glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            break;
+        case 4:  // Small Triangle (left)
+            boxTransformation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::translate(boxTransformation, glm::vec3(0.0f, -2.0f, 0.0f));
+            break;
+        case 5:  // Small Triangle (right)
+            boxTransformation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::translate(boxTransformation, glm::vec3(0.0f, -2.0f, 0.0f));
+            break;
+        case 6:  // Parallelogram
+            boxTransformation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+                glm::translate(boxTransformation, glm::vec3(0.0f, -2.0f, 0.0f));
+            break;
+        }
+
+        BoxModelMatrices.push_back(boxTransformation);
     }
 }
 
@@ -80,7 +132,6 @@ void MyApp::createShaderPrograms() {
     Shaders->addShader(GL_VERTEX_SHADER, "3dTangram/cube-vs.glsl");
     Shaders->addShader(GL_FRAGMENT_SHADER, "3dTangram/cube-fs.glsl");
 
-    // Add attributes based on the first mesh as a reference
     if (!Meshes.empty()) {
         Shaders->addAttribute(mgl::POSITION_ATTRIBUTE, mgl::Mesh::POSITION);
 
@@ -95,18 +146,14 @@ void MyApp::createShaderPrograms() {
         }
     }
 
-    // Add uniform variables for the model matrix, base color, and camera block
     Shaders->addUniform(mgl::MODEL_MATRIX);
-    Shaders->addUniform("baseColor"); // Add uniform for base color
+    Shaders->addUniform("baseColor");
     Shaders->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
 
-    // Create the shader program
     Shaders->create();
 
-    // Retrieve the uniform location for the model matrix
     ModelMatrixId = Shaders->Uniforms[mgl::MODEL_MATRIX].index;
 }
-
 
 ///////////////////////////////////////////////////////////////////////// CAMERA
 
@@ -130,7 +177,7 @@ glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, 1.0f, 10.0f);
 const glm::mat4 ProjectionMatrix2 =
 glm::perspective(glm::radians(100.0f), 640.0f / 480.0f, 1.0f, 50.0f);
 
-void MyApp::createCamera() {
+void MyApp::createCameras() {
     Camera = new mgl::Camera(UBO_BP);
     Camera->setProjectionMatrix(ProjectionMatrix2);
     const glm::mat4 initialViewMatrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -141,10 +188,48 @@ void MyApp::createCamera() {
 
 glm::mat4 ModelMatrix(1.0f);
 
+glm::mat4 interpolate(const glm::mat4& start, const glm::mat4& end, float alpha) {
+    glm::vec3 startScale, startTrans, startSkew;
+    glm::quat startRot;
+    glm::vec4 startPerspective;
+    glm::decompose(start, startScale, startRot, startTrans, startSkew, startPerspective);
+
+    glm::vec3 endScale, endTrans, endSkew;
+    glm::quat endRot;
+    glm::vec4 endPerspective;
+    glm::decompose(end, endScale, endRot, endTrans, endSkew, endPerspective);
+
+    glm::vec3 interpolatedTrans = glm::mix(startTrans, endTrans, alpha);
+    glm::quat interpolatedRot = glm::slerp(startRot, endRot, alpha);
+    glm::vec3 interpolatedScale = glm::mix(startScale, endScale, alpha);
+
+    glm::mat4 interpolatedMat = glm::translate(glm::mat4(1.0f), interpolatedTrans) *
+        glm::mat4_cast(interpolatedRot) *
+        glm::scale(glm::mat4(1.0f), interpolatedScale);
+
+    return interpolatedMat;
+}
+
 void MyApp::drawScene() {
+    if (isAnimating) {
+        if (isAnimatingForward) {
+            animationProgress += 0.01f; 
+            if (animationProgress > 1.0f) {
+                animationProgress = 1.0f;
+                isAnimating = false;
+            }
+        }
+        else {
+            animationProgress -= 0.01f;
+            if (animationProgress < 0.0f) {
+                animationProgress = 0.0f;
+                isAnimating = false;
+            }
+        }
+    }
+
     Shaders->bind();
 
-    // Define base colors for each mesh
     std::vector<glm::vec3> baseColors = {
         glm::vec3(0.7f, 0.3f, 0.2f), // Red
         glm::vec3(0.4f, 0.7f, 0.3f), // Green
@@ -156,10 +241,10 @@ void MyApp::drawScene() {
     };
 
     for (size_t i = 0; i < Meshes.size(); ++i) {
-        glm::mat4 localModelMatrix = ModelMatrices[i];
-        glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(localModelMatrix));
+        glm::mat4 interpolatedMatrix = interpolate(ModelMatrices[i], BoxModelMatrices[i], animationProgress);
 
-        // Set the base color for the current mesh
+        glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(interpolatedMatrix));
+
         glUniform3fv(Shaders->Uniforms["baseColor"].index, 1, glm::value_ptr(baseColors[i]));
 
         Meshes[i]->draw();
@@ -169,6 +254,30 @@ void MyApp::drawScene() {
 }
 
 ////////////////////////////////////////////////////////////////////// CALLBACKS
+
+void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        //change cameras
+    }
+    if (key == GLFW_KEY_LEFT) {
+        if (action == GLFW_PRESS) {
+            isAnimating = true;
+            isAnimatingForward = false;
+        }
+        else if (action == GLFW_RELEASE) {
+            isAnimating = false;
+        }
+    }
+    if (key == GLFW_KEY_RIGHT) {
+        if (action == GLFW_PRESS) {
+            isAnimating = true;
+            isAnimatingForward = true;
+        }
+        else if (action == GLFW_RELEASE) {
+            isAnimating = false;
+        }
+    }
+}
 
 void MyApp::cursorCallback(GLFWwindow* win, double xpos, double ypos) {
     if (Camera) Camera->onMouseMove(win, xpos, ypos);
@@ -181,20 +290,16 @@ void MyApp::scrollCallback(GLFWwindow* win, double xoffset, double yoffset) {
 void MyApp::initCallback(GLFWwindow* win) {
     createMeshes();
     createShaderPrograms();  // after mesh;
-    createCamera();
+    createCameras();
 }
 
 void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
-    // Update the OpenGL viewport
     glViewport(0, 0, winx, winy);
 
-    // Calculate the new aspect ratio
     float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
 
-    // Update the projection matrix based on the new aspect ratio
     glm::mat4 newProjectionMatrix = glm::perspective(glm::radians(100.0f), aspectRatio, 1.0f, 50.0f);
 
-    // Set the new projection matrix to the camera
     Camera->setProjectionMatrix(newProjectionMatrix);
 }
 

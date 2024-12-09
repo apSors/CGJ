@@ -73,7 +73,6 @@ namespace mgl {
             dragging = true;
             return;
         }
-
         float xoffset = static_cast<float>(xpos - lastX);
         float yoffset = static_cast<float>(ypos - lastY);
 
@@ -83,26 +82,26 @@ namespace mgl {
         if (xoffset == 0 && yoffset == 0) {
             return;
         }
-
         const float sensitivity = 0.1f;
         xoffset *= sensitivity;
         yoffset *= sensitivity;
 
-        glm::quat pitch = glm::angleAxis(glm::radians(-yoffset), glm::vec3(1.0f, 0.0f, 0.0f));
         glm::quat yaw = glm::angleAxis(glm::radians(-xoffset), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::quat pitch = glm::angleAxis(glm::radians(-yoffset), glm::vec3(1.0f, 0.0f, 0.0f));
 
-        orientation = glm::normalize(yaw * orientation * pitch);
+        orientation = glm::normalize(yaw * orientation);
+        orientation = glm::normalize(orientation * pitch);
 
         glm::vec3 forward = glm::mat3_cast(orientation) * glm::vec3(0.0f, 0.0f, -1.0f);
         position = -forward * radius;
-
-        ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::mat3_cast(orientation) * glm::vec3(0.0f, 1.0f, 0.0f));
 
         glBindBuffer(GL_UNIFORM_BUFFER, UboId);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
-            glm::value_ptr(ViewMatrix));
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(ViewMatrix));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
+
+
 
     void Camera::onScroll(GLFWwindow* window, double xoffset, double yoffset) {
         const float zoomSensitivity = 0.05f;
