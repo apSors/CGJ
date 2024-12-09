@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/constants.hpp> 
 #include <GLFW/glfw3.h>
+#include <utility>
 
 namespace mgl {
 
@@ -108,6 +109,7 @@ namespace mgl {
 
         if (isPerspective) { // Perspective projection
             radius -= static_cast<float>(yoffset) * zoomSensitivity;
+
             if (radius < 0.5f) {
                 radius = 0.5f;
             }
@@ -125,28 +127,7 @@ namespace mgl {
                 glm::value_ptr(ViewMatrix));
             glBindBuffer(GL_UNIFORM_BUFFER, 0);
         }
-        else {  // Orthographic projection (FIX)
-            float zoomFactor = 1.0f + static_cast<float>(yoffset) * zoomSensitivity;
-            left *= zoomFactor;
-            right *= zoomFactor;
-            bottom *= zoomFactor;
-            top *= zoomFactor;
-
-            if (right <= left) {
-                right = left + 0.01f;
-            }
-            if (top <= bottom) {
-                top = bottom + 0.01f;
-            }
-            if (right - left < 0.1f) {
-                right = left + 0.1f;
-                top = bottom + 0.1f;
-            }
-            ProjectionMatrix = glm::ortho(left, right, bottom, top, nearPlane, farPlane);
-
-            glBindBuffer(GL_UNIFORM_BUFFER, UboId);
-            glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(ProjectionMatrix));
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        else { // Orthographic projection
         }
     }
 

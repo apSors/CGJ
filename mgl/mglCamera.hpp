@@ -46,9 +46,8 @@ class Camera {
   glm::mat4 getProjectionMatrix() const;
   void setProjectionMatrix(const glm::mat4 &projectionmatrix);
 
-  void updateViewMatrix();
   void adjustDistance(float delta);
-
+  
   glm::vec3 getPosition() const { return position; }
   void setPosition(const glm::vec3& newPosition) { position = newPosition; }
 

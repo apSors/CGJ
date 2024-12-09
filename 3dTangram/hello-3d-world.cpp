@@ -34,6 +34,7 @@ private:
     mgl::ShaderProgram* Shaders = nullptr;
     mgl::Camera* Camera = nullptr;
     mgl::Camera* Camera2 = nullptr;
+    mgl::Camera* currentCamera = nullptr;
     GLint ModelMatrixId;
     std::vector<glm::mat4> BoxModelMatrices;
     std::vector<glm::mat4> ModelMatrices;
@@ -79,8 +80,8 @@ void MyApp::createMeshes() {
 
         Meshes.push_back(mesh);
 
-        glm::mat4 transformation = glm::mat4(1.0f); 
-        glm::mat4 localRotation = glm::mat4(1.0f); 
+        glm::mat4 transformation = glm::mat4(1.0f);
+        glm::mat4 localRotation = glm::mat4(1.0f);
         ModelMatrices.push_back(transformation);
 
         glm::mat4 boxTransformation = glm::mat4(1.0f);
@@ -88,21 +89,21 @@ void MyApp::createMeshes() {
         switch (i) {
         case 0:  // Medium Triangle
             boxTransformation = glm::mat4(1.0f);
-            boxTransformation = glm::translate(boxTransformation, glm::vec3(-2.0f, 0.0f , 1.0f));
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(-2.0f, 0.0f, 1.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
 
         case 1:  // Large Triangle (green)
             boxTransformation = glm::mat4(1.0f);
-            boxTransformation = glm::translate(boxTransformation, glm::vec3(sqrt(2)/2, 0.0f, 2 - 3*sqrt(2)/2));
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(sqrt(2) / 2, 0.0f, 2 - 3 * sqrt(2) / 2));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
 
         case 2:  // Large Triangle (blue)
             boxTransformation = glm::mat4(1.0f);
-            boxTransformation = glm::translate(boxTransformation, glm::vec3(-1 + sqrt(2), 0.0f, 4 - sqrt(2)   ));
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(-1 + sqrt(2), 0.0f, 4 - sqrt(2)));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             break;
 
@@ -121,20 +122,18 @@ void MyApp::createMeshes() {
 
         case 5:  // Small Triangle (cyan)
             boxTransformation = glm::mat4(1.0f);
-            boxTransformation = glm::translate(boxTransformation, glm::vec3(-sqrt(2)/2, 0.0f, 2.0f + sqrt(2)/2));
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(-sqrt(2) / 2, 0.0f, 2.0f + sqrt(2) / 2));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
 
         case 6:  // Parallelogram
             boxTransformation = glm::mat4(1.0f);
-            boxTransformation = glm::translate(boxTransformation, glm::vec3(3*sqrt(2)/2, 0.0f, 2 - 5*sqrt(2)/2));
+            boxTransformation = glm::translate(boxTransformation, glm::vec3(3 * sqrt(2) / 2, 0.0f, 2 - 5 * sqrt(2) / 2));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
         }
-
-
 
         BoxModelMatrices.push_back(boxTransformation);
     }
@@ -184,7 +183,6 @@ glm::lookAt(glm::vec3(0.0f, 50.0f, 50.0f),  // Eye position farther from the obj
     glm::vec3(0.0f, 0.0f, 0.0f),   // Center (looking towards the origin)
     glm::vec3(0.0f, 1.0f, 0.0f));  // Up vector (keeping the view upright)
 
-
 // Orthographic LeftRight(-2,2) BottomTop(-2,2) NearFar(1,10)
 const glm::mat4 ProjectionMatrix1 =
 glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, 1.0f, 10.0f);
@@ -194,11 +192,22 @@ const glm::mat4 ProjectionMatrix2 =
 glm::perspective(glm::radians(100.0f), 640.0f / 480.0f, 1.0f, 50.0f);
 
 void MyApp::createCameras() {
+    // Create the first camera
     Camera = new mgl::Camera(UBO_BP);
-    Camera->setProjectionMatrix(ProjectionMatrix2);
+    Camera->setProjectionMatrix(ProjectionMatrix1);
     const glm::mat4 initialViewMatrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     Camera->setViewMatrix(initialViewMatrix);
     Camera->adjustDistance(-5.0f);
+
+    /*
+    // Create the second camera
+    Camera2 = new mgl::Camera(UBO_BP);
+    Camera2->setProjectionMatrix(ProjectionMatrix2);
+    const glm::mat4 initialViewMatrix2 = glm::lookAt(glm::vec3(0.0f, 50.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Camera2->setViewMatrix(initialViewMatrix2);
+
+    // Set the initial active camera
+    currentCamera = Camera; */
 }
 /////////////////////////////////////////////////////////////////////////// DRAW
 
@@ -229,7 +238,7 @@ glm::mat4 interpolate(const glm::mat4& start, const glm::mat4& end, float alpha)
 void MyApp::drawScene() {
     if (isAnimating) {
         if (isAnimatingForward) {
-            animationProgress += 0.01f; 
+            animationProgress += 0.01f;
             if (animationProgress > 1.0f) {
                 animationProgress = 1.0f;
                 isAnimating = false;
@@ -273,7 +282,11 @@ void MyApp::drawScene() {
 
 void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-        //change cameras
+        if (currentCamera == Camera) {
+            currentCamera = Camera2;
+        } else {
+            currentCamera = Camera;
+        }
     }
     if (key == GLFW_KEY_LEFT) {
         if (action == GLFW_PRESS) {
@@ -291,6 +304,15 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
         }
         else if (action == GLFW_RELEASE) {
             isAnimating = false;
+        }
+    }
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+        if (Camera->getProjectionMatrix() == ProjectionMatrix1) {
+            Camera->setProjectionMatrix(ProjectionMatrix2);
+
+        }
+        else {
+            Camera->setProjectionMatrix(ProjectionMatrix1);
         }
     }
 }
@@ -312,14 +334,21 @@ void MyApp::initCallback(GLFWwindow* win) {
 void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
     glViewport(0, 0, winx, winy);
 
+    // Update the aspect ratio
     float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
 
-    glm::mat4 newProjectionMatrix = glm::perspective(glm::radians(100.0f), aspectRatio, 1.0f, 50.0f);
-
-    Camera->setProjectionMatrix(newProjectionMatrix);
+    if (Camera->getProjectionMatrix() == ProjectionMatrix1) {
+        Camera->setProjectionMatrix(ProjectionMatrix1);
+    }
+    else {
+        Camera->setProjectionMatrix(ProjectionMatrix2);
+    }
 }
 
-void MyApp::displayCallback(GLFWwindow* win, double elapsed) { drawScene(); }
+
+void MyApp::displayCallback(GLFWwindow* win, double elapsed) {
+    drawScene();
+}
 
 /////////////////////////////////////////////////////////////////////////// MAIN
 
