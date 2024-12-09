@@ -133,8 +133,8 @@ glm::perspective(glm::radians(100.0f), 640.0f / 480.0f, 1.0f, 50.0f);
 void MyApp::createCamera() {
     Camera = new mgl::Camera(UBO_BP);
     Camera->setProjectionMatrix(ProjectionMatrix2);
-    const glm::mat4 initialViewMatrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    Camera->setViewMatrix(ViewMatrix2);
+    const glm::mat4 initialViewMatrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Camera->setViewMatrix(initialViewMatrix);
     Camera->adjustDistance(-5.0f);
 }
 /////////////////////////////////////////////////////////////////////////// DRAW
@@ -185,8 +185,17 @@ void MyApp::initCallback(GLFWwindow* win) {
 }
 
 void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
+    // Update the OpenGL viewport
     glViewport(0, 0, winx, winy);
-    // change projection matrices to maintain aspect ratio
+
+    // Calculate the new aspect ratio
+    float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
+
+    // Update the projection matrix based on the new aspect ratio
+    glm::mat4 newProjectionMatrix = glm::perspective(glm::radians(100.0f), aspectRatio, 1.0f, 50.0f);
+
+    // Set the new projection matrix to the camera
+    Camera->setProjectionMatrix(newProjectionMatrix);
 }
 
 void MyApp::displayCallback(GLFWwindow* win, double elapsed) { drawScene(); }
