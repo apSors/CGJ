@@ -118,7 +118,7 @@ namespace mgl {
             glm::vec3 forward = glm::mat3_cast(orientation) * glm::vec3(0.0f, 0.0f, -1.0f);
             position = -forward * radius;
 
-            ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::mat3_cast(orientation) * glm::vec3(0.0f, 1.0f, 0.0f));
 
             glBindBuffer(GL_UNIFORM_BUFFER, UboId);
             glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
