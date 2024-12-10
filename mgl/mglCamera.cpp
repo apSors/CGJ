@@ -55,8 +55,11 @@ namespace mgl {
 
     glm::mat4 Camera::getProjectionMatrix() const { return ProjectionMatrix; }
 
-    void Camera::setProjectionMatrix(const glm::mat4& projectionmatrix) {
+    bool Camera::getIsPerspective() const { return isPerspective; }
+
+    void Camera::setProjectionMatrix(const glm::mat4& projectionmatrix, bool perspective) {
         ProjectionMatrix = projectionmatrix;
+        isPerspective = perspective; // Update the projection state
         glBindBuffer(GL_UNIFORM_BUFFER, UboId);
         glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4),
             glm::value_ptr(ProjectionMatrix));
@@ -106,26 +109,9 @@ namespace mgl {
 
     void Camera::onScroll(GLFWwindow* window, double xoffset, double yoffset) {
         const float zoomSensitivity = 0.05f;
-
+        float delta = -static_cast<float>(yoffset) * zoomSensitivity;
         if (isPerspective) { // Perspective projection
-            radius -= static_cast<float>(yoffset) * zoomSensitivity;
-
-            if (radius < 0.5f) {
-                radius = 0.5f;
-            }
-            if (radius > 100.0f) {
-                radius = 100.0f;
-            }
-
-            glm::vec3 forward = glm::mat3_cast(orientation) * glm::vec3(0.0f, 0.0f, -1.0f);
-            position = -forward * radius;
-
-            ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::mat3_cast(orientation) * glm::vec3(0.0f, 1.0f, 0.0f));
-
-            glBindBuffer(GL_UNIFORM_BUFFER, UboId);
-            glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
-                glm::value_ptr(ViewMatrix));
-            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            adjustDistance(delta);
         }
         else { // Orthographic projection
         }
@@ -133,13 +119,13 @@ namespace mgl {
 
     void Camera::adjustDistance(float delta) {
         radius += delta;
-        if (radius < 1.0f) {
-            radius = 1.0f;
+        if (radius < 0.5f) {
+            radius = 0.5f;
         }
         glm::vec3 forward = glm::mat3_cast(orientation) * glm::vec3(0.0f, 0.0f, -1.0f);
         position = -forward * radius;
 
-        ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::mat3_cast(orientation) * glm::vec3(0.0f, 1.0f, 0.0f));
 
         glBindBuffer(GL_UNIFORM_BUFFER, UboId);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),

@@ -44,7 +44,8 @@ class Camera {
   glm::mat4 getViewMatrix() const;
   void setViewMatrix(const glm::mat4 &viewmatrix);
   glm::mat4 getProjectionMatrix() const;
-  void setProjectionMatrix(const glm::mat4 &projectionmatrix);
+  void setProjectionMatrix(const glm::mat4 &projectionmatrix, bool perspective);
+  bool getIsPerspective() const;
 
   void adjustDistance(float delta);
   

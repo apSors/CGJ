@@ -24,7 +24,7 @@ class MyApp : public mgl::App {
 public:
     void initCallback(GLFWwindow* win) override;
     void displayCallback(GLFWwindow* win, double elapsed) override;
-    void windowSizeCallback(GLFWwindow* win, int width, int height) override;
+    void windowSizeCallback(GLFWwindow* win, int winx, int winy) override;
     void cursorCallback(GLFWwindow* win, double xpos, double ypos);
     void scrollCallback(GLFWwindow* win, double xoffset, double yoffset);
     void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
@@ -192,22 +192,39 @@ const glm::mat4 ProjectionMatrix2 =
 glm::perspective(glm::radians(100.0f), 640.0f / 480.0f, 1.0f, 50.0f);
 
 void MyApp::createCameras() {
-    // Create the first camera
+    int winx, winy;
+    glfwGetFramebufferSize(glfwGetCurrentContext(), &winx, &winy); // Get actual window dimensions
+    float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
+    
     Camera = new mgl::Camera(UBO_BP);
-    Camera->setProjectionMatrix(ProjectionMatrix1);
-    const glm::mat4 initialViewMatrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    Camera->setViewMatrix(initialViewMatrix);
-    Camera->adjustDistance(-5.0f);
 
-    /*
+    // Use the actual aspect ratio for the initial projection
+    float orthoHeight = 2.0f; // Fixed orthographic height
+    float orthoWidth = orthoHeight * aspectRatio;
+
+    Camera->setProjectionMatrix(glm::ortho(
+        -orthoWidth, orthoWidth,  // Left, Right
+        -orthoHeight, orthoHeight, // Bottom, Top
+        1.0f, 10.0f               // Near, Far
+    ), false);
+
+    glm::mat4 initialViewMatrix = glm::lookAt(
+        glm::vec3(0.0f, 0.0f, 5.0f), // Eye position
+        glm::vec3(0.0f, 0.0f, 0.0f), // Target position
+        glm::vec3(0.0f, 1.0f, 0.0f)  // Up direction
+    );
+    Camera->setViewMatrix(initialViewMatrix);
+ 
+ 
+     /*
+    
     // Create the second camera
     Camera2 = new mgl::Camera(UBO_BP);
-    Camera2->setProjectionMatrix(ProjectionMatrix2);
-    const glm::mat4 initialViewMatrix2 = glm::lookAt(glm::vec3(0.0f, 50.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    Camera2->setViewMatrix(initialViewMatrix2);
-
+    Camera2->setProjectionMatrix(ProjectionMatrix2, true);
+    const glm::mat4 initialViewMatrix2 = glm::lookAt(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Camera2->setViewMatrix(initialViewMatrix2);*/
     // Set the initial active camera
-    currentCamera = Camera; */
+    currentCamera = Camera; 
 }
 /////////////////////////////////////////////////////////////////////////// DRAW
 
@@ -307,22 +324,36 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
         }
     }
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-        if (Camera->getProjectionMatrix() == ProjectionMatrix1) {
-            Camera->setProjectionMatrix(ProjectionMatrix2);
+        int winx, winy;
+        glfwGetFramebufferSize(win, &winx, &winy);
+        float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
 
+        if (currentCamera->getIsPerspective()) {
+            // Switch to orthographic projection
+            float orthoHeight = 2.0f;
+            float orthoWidth = orthoHeight * aspectRatio;
+
+            currentCamera->setProjectionMatrix(glm::ortho(
+                -orthoWidth, orthoWidth,
+                -orthoHeight, orthoHeight,
+                1.0f, 10.0f
+            ), false);
         }
         else {
-            Camera->setProjectionMatrix(ProjectionMatrix1);
+            // Switch to perspective projection
+            currentCamera->setProjectionMatrix(glm::perspective(
+                glm::radians(100.0f), aspectRatio, 1.0f, 50.0f
+            ), true);
         }
     }
 }
 
 void MyApp::cursorCallback(GLFWwindow* win, double xpos, double ypos) {
-    if (Camera) Camera->onMouseMove(win, xpos, ypos);
+    if (currentCamera) currentCamera->onMouseMove(win, xpos, ypos);
 }
 
 void MyApp::scrollCallback(GLFWwindow* win, double xoffset, double yoffset) {
-    if (Camera) Camera->onScroll(win, xoffset, yoffset);
+    if (currentCamera) currentCamera->onScroll(win, xoffset, yoffset);
 }
 
 void MyApp::initCallback(GLFWwindow* win) {
@@ -334,21 +365,30 @@ void MyApp::initCallback(GLFWwindow* win) {
 void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
     glViewport(0, 0, winx, winy);
 
-    // Update the aspect ratio
+    // Compute the new aspect ratio
     float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
 
-    if (Camera->getProjectionMatrix() == ProjectionMatrix1) {
-        Camera->setProjectionMatrix(ProjectionMatrix1);
-    }
-    else {
-        Camera->setProjectionMatrix(ProjectionMatrix2);
+    // Update the projection matrix for the current camera
+    if (currentCamera) {
+        if (currentCamera->getIsPerspective()) {
+            currentCamera->setProjectionMatrix(glm::perspective(glm::radians(100.0f), aspectRatio, 1.0f, 50.0f), true);
+        }
+        else {
+            // Orthographic projection matrix
+            float orthoHeight = 2.0f; // Fixed height
+            float orthoWidth = orthoHeight * aspectRatio; // Adjust width based on aspect ratio
+
+            currentCamera->setProjectionMatrix(glm::ortho(
+                -orthoWidth, orthoWidth,  // Left, Right
+                -orthoHeight, orthoHeight, // Bottom, Top
+                1.0f, 10.0f               // Near, Far
+            ), false);
+        }
     }
 }
 
 
-void MyApp::displayCallback(GLFWwindow* win, double elapsed) {
-    drawScene();
-}
+void MyApp::displayCallback(GLFWwindow* win, double elapsed) { drawScene(); }
 
 /////////////////////////////////////////////////////////////////////////// MAIN
 
