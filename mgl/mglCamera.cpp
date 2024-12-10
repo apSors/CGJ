@@ -7,9 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "./mglCamera.hpp"
-
 #include <glm/glm.hpp>
-
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/constants.hpp> 
 #include <GLFW/glfw3.h>
@@ -23,7 +21,7 @@ namespace mgl {
         : ViewMatrix(glm::mat4(1.0f)),
         ProjectionMatrix(glm::mat4(1.0f)),
         orientation(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f))),
-        radius(10.0f),
+        radius(5.0f),
         isPerspective(true),
         left(-2.0f), right(2.0f), bottom(-2.0f), top(2.0f), nearPlane(1.0f), farPlane(10.0f) {
         glGenBuffers(1, &UboId);
@@ -110,11 +108,7 @@ namespace mgl {
     void Camera::onScroll(GLFWwindow* window, double xoffset, double yoffset) {
         const float zoomSensitivity = 0.05f;
         float delta = -static_cast<float>(yoffset) * zoomSensitivity;
-        if (isPerspective) { // Perspective projection
             adjustDistance(delta);
-        }
-        else { // Orthographic projection
-        }
     }
 
     void Camera::adjustDistance(float delta) {
