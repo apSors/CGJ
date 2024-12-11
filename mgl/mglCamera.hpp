@@ -47,6 +47,8 @@ class Camera {
   void setProjectionMatrix(const glm::mat4 &projectionmatrix, bool perspective);
   bool getIsPerspective() const;
 
+  GLuint getUboId() const;
+
   void adjustDistance(float delta);
   
   glm::vec3 getPosition() const { return position; }

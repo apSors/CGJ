@@ -29,7 +29,11 @@ public:
 private:
     const GLuint UBO_BP = 0;
     mgl::ShaderProgram* Shaders = nullptr;
-    mgl::Camera* Camera = nullptr;
+
+    mgl::Camera* Camera1 = nullptr;
+    mgl::Camera* Camera2 = nullptr;
+    bool isCamera1Active = true;
+
     GLint ModelMatrixId;
     std::vector<glm::mat4> BoxModelMatrices;
     std::vector<glm::mat4> ModelMatrices;
@@ -56,7 +60,7 @@ private:
 ///////////////////////////////////////////////////////////////////////// MESHES
 
 void MyApp::createMeshes() {
-    std::string mesh_dir = "assets/";
+    std::string mesh_dir = "../assets/";
 
     std::vector<std::string> mesh_files = {
         "medium_triangle.obj",
@@ -144,8 +148,8 @@ void MyApp::createMeshes() {
 
 void MyApp::createShaderPrograms() {
     Shaders = new mgl::ShaderProgram();
-    Shaders->addShader(GL_VERTEX_SHADER, "3dTangram/cube-vs.glsl");
-    Shaders->addShader(GL_FRAGMENT_SHADER, "3dTangram/cube-fs.glsl");
+    Shaders->addShader(GL_VERTEX_SHADER, "cube-vs.glsl");
+    Shaders->addShader(GL_FRAGMENT_SHADER, "cube-fs.glsl");
 
     if (!Meshes.empty()) {
         Shaders->addAttribute(mgl::POSITION_ATTRIBUTE, mgl::Mesh::POSITION);
@@ -190,24 +194,28 @@ void MyApp::createCamera() {
         glm::radians(100.0f), aspectRatio, 1.0f, 50.0f
     );
 
-    Camera = new mgl::Camera(UBO_BP);
-    Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
-
-    viewMatrix1 = glm::lookAt(
+    // Camera 1
+    Camera1 = new mgl::Camera(UBO_BP);
+    Camera1->setProjectionMatrix(originalPerspectiveMatrix, true);
+    Camera1->setViewMatrix(glm::lookAt(
         glm::vec3(0.0f, 0.0f, 5.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
-    );
+    ));
 
-    viewMatrix2 = glm::lookAt(
+    // Camera 2
+    Camera2 = new mgl::Camera(UBO_BP);
+    Camera2->setProjectionMatrix(originalPerspectiveMatrix, true);
+    Camera2->setViewMatrix(glm::lookAt(
         glm::vec3(5.0f, 0.0f, 5.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
-    );
+    ));
 
     currentViewMatrix = viewMatrix1;
-    Camera->setViewMatrix(currentViewMatrix);
+    Camera1->setViewMatrix(currentViewMatrix);
 }
+
 
 /////////////////////////////////////////////////////////////////////////// DRAW
 
@@ -282,16 +290,17 @@ void MyApp::drawScene() {
 
 void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        isCamera1Active = !isCamera1Active;
         if (currentViewMatrix == viewMatrix1) {
-            viewMatrix1 = Camera->getViewMatrix();
-
+            viewMatrix1 = Camera1->getViewMatrix();
             currentViewMatrix = viewMatrix2;
+            Camera1->setViewMatrix(currentViewMatrix);
         }
         else {
-            viewMatrix2 = Camera->getViewMatrix();
+            viewMatrix2 = Camera2->getViewMatrix();
             currentViewMatrix = viewMatrix1;
+            Camera2->setViewMatrix(currentViewMatrix);
         }
-        Camera->setViewMatrix(currentViewMatrix);
     }
     if (key == GLFW_KEY_LEFT) {
         if (action == GLFW_PRESS) {
@@ -312,13 +321,20 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
         }
     }
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-        if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-            if (isUsingPerspective) {
-                Camera->setProjectionMatrix(originalOrthographicMatrix, false);
+        if (isUsingPerspective) {
+            if (isCamera1Active) {
+                Camera1->setProjectionMatrix(originalOrthographicMatrix, false);
+                isUsingPerspective = false;
+            } else {
+                Camera2->setProjectionMatrix(originalOrthographicMatrix, false);
                 isUsingPerspective = false;
             }
-            else {
-                Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
+        } else {
+            if (isCamera1Active) {
+                Camera1->setProjectionMatrix(originalPerspectiveMatrix, true);
+                isUsingPerspective = true;
+            } else {
+                Camera2->setProjectionMatrix(originalPerspectiveMatrix, true);
                 isUsingPerspective = true;
             }
         }
@@ -326,12 +342,21 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
 }
 
 void MyApp::cursorCallback(GLFWwindow* win, double xpos, double ypos) {
-    if (Camera) Camera->onMouseMove(win, xpos, ypos);
+    if (isCamera1Active) {
+        Camera1->onMouseMove(win, xpos, ypos);
+    } else {
+        Camera2->onMouseMove(win, xpos, ypos);
+    }
 }
 
 void MyApp::scrollCallback(GLFWwindow* win, double xoffset, double yoffset) {
-    if (Camera) Camera->onScroll(win, xoffset, yoffset);
+    if (isCamera1Active) {
+        Camera1->onScroll(win, xoffset, yoffset);
+    } else {
+        Camera2->onScroll(win, xoffset, yoffset);
+    }
 }
+
 
 void MyApp::initCallback(GLFWwindow* win) {
     createMeshes();
@@ -357,14 +382,28 @@ void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
     );
 
     if (isUsingPerspective) {
-        Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
+        if (isCamera1Active) {
+            Camera1->setProjectionMatrix(originalPerspectiveMatrix, true);
+        } else {
+            Camera2->setProjectionMatrix(originalPerspectiveMatrix, true);
+        }
     }
     else {
-        Camera->setProjectionMatrix(originalOrthographicMatrix, false);
+        if (isCamera1Active) {
+            Camera1->setProjectionMatrix(originalOrthographicMatrix, false);
+        } else {
+            Camera2->setProjectionMatrix(originalOrthographicMatrix, false);
+        }
     }
 }
 
-void MyApp::displayCallback(GLFWwindow* win, double elapsed) { drawScene(); }
+void MyApp::displayCallback(GLFWwindow* win, double elapsed) { 
+    mgl::Camera* activeCamera = isCamera1Active ? Camera1 : Camera2;
+
+    glBindBuffer(GL_UNIFORM_BUFFER, activeCamera->getUboId());
+    // Render scene
+    drawScene();
+}
 
 /////////////////////////////////////////////////////////////////////////// MAIN
 

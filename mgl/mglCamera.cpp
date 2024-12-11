@@ -36,6 +36,10 @@ namespace mgl {
         glDeleteBuffers(1, &UboId);
     }
 
+    GLuint Camera::getUboId() const {
+        return UboId;
+    }
+
     glm::mat4 Camera::getViewMatrix() const { return ViewMatrix; }
 
     void Camera::setViewMatrix(const glm::mat4& viewmatrix) {

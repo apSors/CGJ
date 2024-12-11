@@ -1,4 +1,4 @@
-DIR := src
+DIR := 3dTangram
 
 debug : TARGET := debug
 debug : all
