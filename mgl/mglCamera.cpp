@@ -51,9 +51,10 @@ namespace mgl {
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
+    bool Camera::getIsPerspective() const { return isPerspective; }
+
     glm::mat4 Camera::getProjectionMatrix() const { return ProjectionMatrix; }
 
-    bool Camera::getIsPerspective() const { return isPerspective; }
 
     void Camera::setProjectionMatrix(const glm::mat4& projectionmatrix, bool perspective) {
         ProjectionMatrix = projectionmatrix;
@@ -61,6 +62,18 @@ namespace mgl {
         glBindBuffer(GL_UNIFORM_BUFFER, UboId);
         glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4),
             glm::value_ptr(ProjectionMatrix));
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
+
+    void Camera::setOrientation(const glm::quat& newOrientation) {
+        orientation = newOrientation;
+
+        glm::vec3 forward = glm::mat3_cast(orientation) * glm::vec3(0.0f, 0.0f, -1.0f);
+        position = -forward * radius;
+        ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::mat3_cast(orientation) * glm::vec3(0.0f, 1.0f, 0.0f));
+
+        glBindBuffer(GL_UNIFORM_BUFFER, UboId);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(ViewMatrix));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 

@@ -40,12 +40,13 @@ private:
     bool isUsingPerspective = true;
 
     glm::mat4 viewMatrix;
-    glm::mat4 alternateViewMatrix;  // Added alternate view matrix
-    bool isUsingAlternateView = false;  // State for tracking which view is active
+    glm::mat4 alternateViewMatrix;
+    bool isusingSecondCamera = false;
 
     void createMeshes();
     void createShaderPrograms();
     void createCamera();
+    void switchCamera();
     void drawScene();
 
     float animationProgress = 0.0f;
@@ -164,7 +165,6 @@ void MyApp::createShaderPrograms() {
     Shaders->addUniform(mgl::MODEL_MATRIX);
     Shaders->addUniform("baseColor");
     Shaders->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
-
     Shaders->create();
 
     ModelMatrixId = Shaders->Uniforms[mgl::MODEL_MATRIX].index;
@@ -199,15 +199,45 @@ void MyApp::createCamera() {
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    // Alternate view matrix
     alternateViewMatrix = glm::lookAt(
-        glm::vec3(5.0f, 5.0f, 5.0f),  // Alternate position
-        glm::vec3(0.0f, 0.0f, 0.0f),  // Look at the same target
-        glm::vec3(0.0f, 1.0f, 0.0f)   // Same up vector
+        glm::vec3(0.0f, 5.0f, 5.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
     Camera->setViewMatrix(viewMatrix);
 }
+
+void MyApp::switchCamera() {
+    static glm::vec3 primaryCameraPosition = glm::vec3(0.0f, 0.0f, 5.0f);
+    static glm::quat primaryCameraOrientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+    static glm::mat4 primaryProjectionMatrix = originalPerspectiveMatrix;
+
+    static glm::vec3 alternateCameraPosition = glm::vec3(0.0f, 10.0f, 0.0f);
+    static glm::quat alternateCameraOrientation = glm::quat(glm::vec3(-0.3f, 0.3f, 0.0f));
+    static glm::mat4 alternateProjectionMatrix = originalOrthographicMatrix;
+
+    if (isusingSecondCamera) {
+        alternateCameraPosition = Camera->getPosition();
+        alternateCameraOrientation = Camera->getOrientation();
+        alternateProjectionMatrix = Camera->getProjectionMatrix();
+
+        Camera->setPosition(primaryCameraPosition);
+        Camera->setOrientation(primaryCameraOrientation);
+        Camera->setProjectionMatrix(primaryProjectionMatrix, isUsingPerspective);
+    }
+    else {
+        primaryCameraPosition = Camera->getPosition();
+        primaryCameraOrientation = Camera->getOrientation();
+        primaryProjectionMatrix = Camera->getProjectionMatrix();
+
+        Camera->setPosition(alternateCameraPosition);
+        Camera->setOrientation(alternateCameraOrientation);
+        Camera->setProjectionMatrix(alternateProjectionMatrix, !isUsingPerspective);
+    }
+    isusingSecondCamera = !isusingSecondCamera;
+}
+
 
 /////////////////////////////////////////////////////////////////////////// DRAW
 
@@ -281,36 +311,19 @@ void MyApp::drawScene() {
 ////////////////////////////////////////////////////////////////////// CALLBACKS
 
 void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
-    static glm::vec3 primaryCameraPosition = glm::vec3(0.0f, 0.0f, 5.0f);
-    static glm::quat primaryCameraOrientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
-    static glm::mat4 primaryProjectionMatrix = originalPerspectiveMatrix;
-
-    static glm::vec3 alternateCameraPosition = glm::vec3(5.0f, 5.0f, 5.0f);
-    static glm::quat alternateCameraOrientation = glm::quat(glm::vec3(-0.3f, 0.3f, 0.0f));
-    static glm::mat4 alternateProjectionMatrix = originalOrthographicMatrix;
-
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_C) {
-            if (isUsingAlternateView) {
-                alternateCameraPosition = Camera->getPosition();
-                alternateCameraOrientation = Camera->getOrientation();
-                alternateProjectionMatrix = Camera->getProjectionMatrix();
-
-                Camera->setPosition(primaryCameraPosition);
-                Camera->setOrientation(primaryCameraOrientation);
-                Camera->setProjectionMatrix(primaryProjectionMatrix, isUsingPerspective);
+            switchCamera();
+        }
+        if (key == GLFW_KEY_P) {
+            if (Camera->getProjectionMatrix() == originalPerspectiveMatrix) {
+                Camera->setProjectionMatrix(originalOrthographicMatrix, false);
+                isUsingPerspective = false;
             }
             else {
-                primaryCameraPosition = Camera->getPosition();
-                primaryCameraOrientation = Camera->getOrientation();
-                primaryProjectionMatrix = Camera->getProjectionMatrix();
-
-                Camera->setPosition(alternateCameraPosition);
-                Camera->setOrientation(alternateCameraOrientation);
-                Camera->setProjectionMatrix(alternateProjectionMatrix, !isUsingPerspective);
+                Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
+                isUsingPerspective = true;
             }
-
-            isUsingAlternateView = !isUsingAlternateView;
         }
     }
     if (key == GLFW_KEY_LEFT) {
@@ -331,17 +344,7 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
             isAnimating = false;
         }
     }
-    if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-        if (Camera->getProjectionMatrix() == originalPerspectiveMatrix) {
-            Camera->setProjectionMatrix(originalOrthographicMatrix, false);
-            isUsingPerspective = false;
-        }
-        else {
-            Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
-            isUsingPerspective = true;
-        }
-        
-    }
+    
 }
 
 void MyApp::cursorCallback(GLFWwindow* win, double xpos, double ypos) {

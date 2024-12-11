@@ -53,7 +53,7 @@ class Camera {
   void setPosition(const glm::vec3& newPosition) { position = newPosition; }
 
   glm::quat getOrientation() const { return orientation; }
-  void setOrientation(const glm::quat& newOrientation) { orientation = newOrientation; }
+  void setOrientation(const glm::quat& newOrientation);
 
   void onMouseMove(GLFWwindow* window, double xpos, double ypos);
   void onScroll(GLFWwindow* window, double xoffset, double yoffset);
