@@ -1,11 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Loading meshes from external files
+// Loading meshes from external files
 //
 // Copyright (c) 2023-24 by Carlos Martinho
-//
-// INTRODUCES:
-// MODEL DATA, ASSIMP, mglMesh.hpp
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -33,8 +30,6 @@ private:
     const GLuint UBO_BP = 0;
     mgl::ShaderProgram* Shaders = nullptr;
     mgl::Camera* Camera = nullptr;
-    mgl::Camera* Camera2 = nullptr;
-    mgl::Camera* currentCamera = nullptr;
     GLint ModelMatrixId;
     std::vector<glm::mat4> BoxModelMatrices;
     std::vector<glm::mat4> ModelMatrices;
@@ -44,15 +39,18 @@ private:
     glm::mat4 originalPerspectiveMatrix;
     bool isUsingPerspective = true;
 
+    glm::mat4 viewMatrix1;
+    glm::mat4 viewMatrix2;
+    glm::mat4 currentViewMatrix;
+
     void createMeshes();
     void createShaderPrograms();
-    void createCameras();
+    void createCamera();
     void drawScene();
 
     float animationProgress = 0.0f;
     bool isAnimatingForward = false;
     bool isAnimating = false;
-
 };
 
 ///////////////////////////////////////////////////////////////////////// MESHES
@@ -73,7 +71,6 @@ void MyApp::createMeshes() {
     ModelMatrices.clear();
     BoxModelMatrices.clear();
     Meshes.clear();
-
 
     for (size_t i = 0; i < mesh_files.size(); ++i) {
         std::string mesh_fullname = mesh_dir + mesh_files[i];
@@ -146,7 +143,6 @@ void MyApp::createMeshes() {
 ///////////////////////////////////////////////////////////////////////// SHADER
 
 void MyApp::createShaderPrograms() {
-    // Create and compile the shader program
     Shaders = new mgl::ShaderProgram();
     Shaders->addShader(GL_VERTEX_SHADER, "3dTangram/cube-vs.glsl");
     Shaders->addShader(GL_FRAGMENT_SHADER, "3dTangram/cube-fs.glsl");
@@ -176,12 +172,11 @@ void MyApp::createShaderPrograms() {
 
 ///////////////////////////////////////////////////////////////////////// CAMERA
 
-void MyApp::createCameras() {
+void MyApp::createCamera() {
     int winx, winy;
     glfwGetFramebufferSize(glfwGetCurrentContext(), &winx, &winy);
     float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
 
-    // Create the original orthographic and perspective projection matrices
     float orthoHeight = 5.0f;
     float orthoWidth = orthoHeight * aspectRatio;
 
@@ -196,15 +191,24 @@ void MyApp::createCameras() {
     );
 
     Camera = new mgl::Camera(UBO_BP);
-    Camera->setProjectionMatrix(originalPerspectiveMatrix, true); // Start with perspective
-    Camera->setViewMatrix(glm::lookAt(
+    Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
+
+    viewMatrix1 = glm::lookAt(
         glm::vec3(0.0f, 0.0f, 5.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
-    ));
+    );
 
-    currentCamera = Camera;
+    viewMatrix2 = glm::lookAt(
+        glm::vec3(5.0f, 0.0f, 5.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+    );
+
+    currentViewMatrix = viewMatrix1;
+    Camera->setViewMatrix(currentViewMatrix);
 }
+
 /////////////////////////////////////////////////////////////////////////// DRAW
 
 glm::mat4 ModelMatrix(1.0f);
@@ -278,11 +282,16 @@ void MyApp::drawScene() {
 
 void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-        if (currentCamera == Camera) {
-            currentCamera = Camera2;
-        } else {
-            currentCamera = Camera;
+        if (currentViewMatrix == viewMatrix1) {
+            viewMatrix1 = Camera->getViewMatrix();
+
+            currentViewMatrix = viewMatrix2;
         }
+        else {
+            viewMatrix2 = Camera->getViewMatrix();
+            currentViewMatrix = viewMatrix1;
+        }
+        Camera->setViewMatrix(currentViewMatrix);
     }
     if (key == GLFW_KEY_LEFT) {
         if (action == GLFW_PRESS) {
@@ -305,11 +314,11 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
         if (key == GLFW_KEY_P && action == GLFW_PRESS) {
             if (isUsingPerspective) {
-                currentCamera->setProjectionMatrix(originalOrthographicMatrix, false);
+                Camera->setProjectionMatrix(originalOrthographicMatrix, false);
                 isUsingPerspective = false;
             }
             else {
-                currentCamera->setProjectionMatrix(originalPerspectiveMatrix, true);
+                Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
                 isUsingPerspective = true;
             }
         }
@@ -317,17 +326,17 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
 }
 
 void MyApp::cursorCallback(GLFWwindow* win, double xpos, double ypos) {
-    if (currentCamera) currentCamera->onMouseMove(win, xpos, ypos);
+    if (Camera) Camera->onMouseMove(win, xpos, ypos);
 }
 
 void MyApp::scrollCallback(GLFWwindow* win, double xoffset, double yoffset) {
-    if (currentCamera) currentCamera->onScroll(win, xoffset, yoffset);
+    if (Camera) Camera->onScroll(win, xoffset, yoffset);
 }
 
 void MyApp::initCallback(GLFWwindow* win) {
     createMeshes();
     createShaderPrograms();  // after mesh;
-    createCameras();
+    createCamera();
 }
 
 void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
@@ -337,7 +346,6 @@ void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
     float orthoHeight = 10.0f;
     float orthoWidth = orthoHeight * aspectRatio;
 
-    // Recalculate the matrices but only when resizing, not toggling
     originalOrthographicMatrix = glm::ortho(
         -orthoWidth, orthoWidth,
         -orthoHeight, orthoHeight,
@@ -348,15 +356,13 @@ void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
         glm::radians(100.0f), aspectRatio, 1.0f, 50.0f
     );
 
-    // Update the current camera's projection matrix
     if (isUsingPerspective) {
-        currentCamera->setProjectionMatrix(originalPerspectiveMatrix, true);
+        Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
     }
     else {
-        currentCamera->setProjectionMatrix(originalOrthographicMatrix, false);
+        Camera->setProjectionMatrix(originalOrthographicMatrix, false);
     }
 }
-
 
 void MyApp::displayCallback(GLFWwindow* win, double elapsed) { drawScene(); }
 

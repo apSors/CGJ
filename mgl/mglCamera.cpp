@@ -103,8 +103,6 @@ namespace mgl {
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
-
-
     void Camera::onScroll(GLFWwindow* window, double xoffset, double yoffset) {
         const float zoomSensitivity = 0.05f;
         float delta = -static_cast<float>(yoffset) * zoomSensitivity;
