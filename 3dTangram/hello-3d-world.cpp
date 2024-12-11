@@ -15,6 +15,56 @@
 
 #include "../mgl/mgl.hpp"
 
+#include <vector>
+
+class SceneNode {
+public:
+    SceneNode(mgl::Mesh* mesh = nullptr, glm::vec3 color = glm::vec3(1.0f))
+        : parent(nullptr), localTransform(glm::mat4(1.0f)), worldTransform(glm::mat4(1.0f)),
+          mesh(mesh), color(color) {}
+
+    void setLocalTransform(const glm::mat4& transform) { localTransform = transform; }
+    const glm::mat4& getWorldTransform() const { return worldTransform; }
+
+    void setColor(const glm::vec3& col) { color = col; }
+
+    void addChild(SceneNode* child) {
+        children.push_back(child);
+        child->parent = this;
+    }
+
+    void updateTransform() {
+        if (parent) {
+            worldTransform = parent->worldTransform * localTransform;
+        } else {
+            worldTransform = localTransform;
+        }
+        for (SceneNode* child : children) {
+            child->updateTransform();
+        }
+    }
+
+    void draw(mgl::ShaderProgram* shader, GLint modelMatrixId, GLint colorId) {
+        if (mesh) {
+            glUniformMatrix4fv(modelMatrixId, 1, GL_FALSE, glm::value_ptr(worldTransform));
+            glUniform3fv(colorId, 1, glm::value_ptr(color));
+            mesh->draw();
+        }
+        for (SceneNode* child : children) {
+            child->draw(shader, modelMatrixId, colorId);
+        }
+    }
+
+private:
+    SceneNode* parent;
+    glm::mat4 localTransform;
+    glm::mat4 worldTransform;
+    mgl::Mesh* mesh;
+    glm::vec3 color;
+    std::vector<SceneNode*> children;
+};
+
+
 ////////////////////////////////////////////////////////////////////////// MYAPP
 
 class MyApp : public mgl::App {
@@ -43,21 +93,48 @@ private:
     glm::mat4 alternateViewMatrix;
     bool isusingSecondCamera = false;
 
+    SceneNode* tangramRoot;
+    std::vector<SceneNode*> tangramPieces;
+
     void createMeshes();
     void createShaderPrograms();
     void createCamera();
     void switchCamera();
     void drawScene();
+    void createSceneGraph();
 
     float animationProgress = 0.0f;
     bool isAnimatingForward = false;
     bool isAnimating = false;
 };
 
+
+void MyApp::createSceneGraph() {
+    tangramRoot = new SceneNode();
+    std::vector<glm::vec3> colors = {
+        glm::vec3(0.7f, 0.3f, 0.2f), // Red
+        glm::vec3(0.4f, 0.7f, 0.3f), // Green
+        glm::vec3(0.2f, 0.3f, 0.8f), // Blue
+        glm::vec3(0.7f, 0.8f, 0.0f), // Yellow
+        glm::vec3(0.5f, 0.2f, 0.6f), // Purple
+        glm::vec3(0.2f, 0.6f, 0.7f), // Cyan
+        glm::vec3(0.8f, 0.5f, 0.3f)  // Orange
+    };
+
+    for (size_t i = 0; i < Meshes.size(); ++i) {
+        SceneNode* pieceNode = new SceneNode(Meshes[i], colors[i]);
+        //pieceNode->setLocalTransform(BoxModelMatrices[i]);
+        tangramRoot->addChild(pieceNode);
+        tangramPieces.push_back(pieceNode);
+    }
+    tangramRoot->updateTransform();
+}
+
+
 ///////////////////////////////////////////////////////////////////////// MESHES
 
 void MyApp::createMeshes() {
-    std::string mesh_dir = "assets/";
+    std::string mesh_dir = "../assets/";
 
     std::vector<std::string> mesh_files = {
         "medium_triangle.obj",
@@ -145,8 +222,8 @@ void MyApp::createMeshes() {
 
 void MyApp::createShaderPrograms() {
     Shaders = new mgl::ShaderProgram();
-    Shaders->addShader(GL_VERTEX_SHADER, "3dTangram/cube-vs.glsl");
-    Shaders->addShader(GL_FRAGMENT_SHADER, "3dTangram/cube-fs.glsl");
+    Shaders->addShader(GL_VERTEX_SHADER, "cube-vs.glsl");
+    Shaders->addShader(GL_FRAGMENT_SHADER, "cube-fs.glsl");
 
     if (!Meshes.empty()) {
         Shaders->addAttribute(mgl::POSITION_ATTRIBUTE, mgl::Mesh::POSITION);
@@ -267,6 +344,20 @@ glm::mat4 interpolate(const glm::mat4& start, const glm::mat4& end, float alpha)
 
 void MyApp::drawScene() {
     if (isAnimating) {
+        animationProgress += (isAnimatingForward ? 0.01f : -0.01f);
+        animationProgress = glm::clamp(animationProgress, 0.0f, 1.0f);
+
+        for (size_t i = 0; i < tangramPieces.size(); ++i) {
+            glm::mat4 interpolatedTransform = interpolate(
+                ModelMatrices[i], BoxModelMatrices[i], animationProgress
+            );
+            tangramPieces[i]->setLocalTransform(interpolatedTransform);
+        }
+
+        tangramRoot->updateTransform();
+    }
+
+    if (isAnimating) {
         if (isAnimatingForward) {
             animationProgress += 0.01f;
             if (animationProgress > 1.0f) {
@@ -305,6 +396,9 @@ void MyApp::drawScene() {
         Meshes[i]->draw();
     }
 
+    Shaders->bind();
+    GLint colorId = Shaders->Uniforms["baseColor"].index;
+    tangramRoot->draw(Shaders, ModelMatrixId, colorId); 
     Shaders->unbind();
 }
 
@@ -359,6 +453,7 @@ void MyApp::initCallback(GLFWwindow* win) {
     createMeshes();
     createShaderPrograms();  // after mesh;
     createCamera();
+    createSceneGraph();
 }
 
 void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
