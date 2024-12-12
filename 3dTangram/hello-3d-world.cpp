@@ -159,8 +159,7 @@ void MyApp::createMeshes() {
         ModelMatrices.push_back(transformation);
 
         glm::mat4 boxTransformation = glm::mat4(1.0f);
-        boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, -0.5f, 0.0f));
-        boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, 0.0f, -2.0f));
+        boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, -0.5f,-2.0f));
 
         switch (i) {
         case 0:  // Medium Triangle
