@@ -41,12 +41,11 @@ class Camera {
   explicit Camera(GLuint bindingpoint);
   virtual ~Camera();
 
-  glm::mat4 getViewMatrix() const;
+  glm::mat4 getViewMatrix() const { return ViewMatrix; }
   void setViewMatrix(const glm::mat4 &viewmatrix);
 
-  glm::mat4 getProjectionMatrix() const;
+  glm::mat4 getProjectionMatrix() const { return ProjectionMatrix; }
   void setProjectionMatrix(const glm::mat4 &projectionmatrix, bool perspective);
-  bool getIsPerspective() const;
   
   glm::vec3 getPosition() const { return position; }
   void setPosition(const glm::vec3& newPosition) { position = newPosition; }

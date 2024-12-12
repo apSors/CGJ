@@ -35,8 +35,6 @@ namespace mgl {
         glDeleteBuffers(1, &UboId);
     }
 
-    glm::mat4 Camera::getViewMatrix() const { return ViewMatrix; }
-
     void Camera::setViewMatrix(const glm::mat4& viewmatrix) {
         ViewMatrix = viewmatrix;
 
@@ -50,14 +48,9 @@ namespace mgl {
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
 
-    bool Camera::getIsPerspective() const { return isPerspective; }
-
-    glm::mat4 Camera::getProjectionMatrix() const { return ProjectionMatrix; }
-
-
     void Camera::setProjectionMatrix(const glm::mat4& projectionmatrix, bool perspective) {
         ProjectionMatrix = projectionmatrix;
-        isPerspective = perspective; // Update the projection state
+        isPerspective = perspective;
         glBindBuffer(GL_UNIFORM_BUFFER, UboId);
         glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4),
             glm::value_ptr(ProjectionMatrix));
