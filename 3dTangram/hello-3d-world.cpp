@@ -155,53 +155,49 @@ void MyApp::createMeshes() {
         Meshes.push_back(mesh);
 
         glm::mat4 transformation = glm::mat4(1.0f);
+        transformation = glm::translate(transformation, glm::vec3(0.0f, -2.0f, 0.0f));
         ModelMatrices.push_back(transformation);
 
         glm::mat4 boxTransformation = glm::mat4(1.0f);
+        boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, -0.5f, 0.0f));
+        boxTransformation = glm::translate(boxTransformation, glm::vec3(0.0f, 0.0f, -2.0f));
 
         switch (i) {
         case 0:  // Medium Triangle
-            boxTransformation = glm::mat4(1.0f);
             boxTransformation = glm::translate(boxTransformation, glm::vec3(-2.0f, 0.0f, 1.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
 
         case 1:  // Large Triangle (green)
-            boxTransformation = glm::mat4(1.0f);
             boxTransformation = glm::translate(boxTransformation, glm::vec3(sqrt(2) / 2, 0.0f, 2 - 3 * sqrt(2) / 2));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
 
         case 2:  // Large Triangle (blue)
-            boxTransformation = glm::mat4(1.0f);
             boxTransformation = glm::translate(boxTransformation, glm::vec3(-1 + sqrt(2), 0.0f, 4 - sqrt(2)));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             break;
 
         case 3:  // Square
-            boxTransformation = glm::mat4(1.0f);
             boxTransformation = glm::translate(boxTransformation, glm::vec3(-1.0f, 0.0f, 4 + sqrt(2)));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             break;
 
         case 4:  // Small Triangle (purple)
-            boxTransformation = glm::mat4(1.0f);
             boxTransformation = glm::translate(boxTransformation, glm::vec3(2.0f, 0.0f, sqrt(2)));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
 
         case 5:  // Small Triangle (cyan)
-            boxTransformation = glm::mat4(1.0f);
             boxTransformation = glm::translate(boxTransformation, glm::vec3(-sqrt(2) / 2, 0.0f, 2.0f + sqrt(2) / 2));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
 
         case 6:  // Parallelogram
-            boxTransformation = glm::mat4(1.0f);
             boxTransformation = glm::translate(boxTransformation, glm::vec3(3 * sqrt(2) / 2, 0.0f, 2 - 5 * sqrt(2) / 2));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             boxTransformation = glm::rotate(boxTransformation, glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
