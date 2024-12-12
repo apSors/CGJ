@@ -65,9 +65,9 @@ public:
     void initCallback(GLFWwindow* win) override;
     void displayCallback(GLFWwindow* win, double elapsed) override;
     void windowSizeCallback(GLFWwindow* win, int winx, int winy) override;
-    void cursorCallback(GLFWwindow* win, double xpos, double ypos);
-    void scrollCallback(GLFWwindow* win, double xoffset, double yoffset);
-    void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods);
+    void cursorCallback(GLFWwindow* win, double xpos, double ypos) override;
+    void scrollCallback(GLFWwindow* win, double xoffset, double yoffset) override;
+    void keyCallback(GLFWwindow* win, int key, int scancode, int action, int mods) override;
 
 private:
     const GLuint UBO_BP = 0;
@@ -96,13 +96,11 @@ private:
     glm::mat4 perspectiveMatrix;
     bool isUsingPerspective = true;
 
-    glm::vec3 primaryCameraPosition;
     glm::quat primaryCameraOrientation;
     glm::mat4 primaryProjectionMatrix;
     float primaryCameraRadius;
 
     bool isusingSecondCamera = false;
-    glm::vec3 alternateCameraPosition;
     glm::quat alternateCameraOrientation;
     glm::mat4 alternateProjectionMatrix;
     float alternateCameraRadius;
@@ -157,7 +155,6 @@ void MyApp::createMeshes() {
         Meshes.push_back(mesh);
 
         glm::mat4 transformation = glm::mat4(1.0f);
-        glm::mat4 localRotation = glm::mat4(1.0f);
         ModelMatrices.push_back(transformation);
 
         glm::mat4 boxTransformation = glm::mat4(1.0f);
@@ -327,6 +324,7 @@ glm::mat4 interpolate(const glm::mat4& start, const glm::mat4& end, float alpha)
 void MyApp::drawScene() {
     if (isAnimating) {
         animationProgress += isAnimatingForward ? 0.01f : -0.01f;
+        animationProgress = glm::clamp(animationProgress, 0.0f, 1.0f);
 
         if (animationProgress == 0.0f || animationProgress == 1.0f) {
             isAnimating = false;

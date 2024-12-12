@@ -22,8 +22,7 @@ namespace mgl {
         ProjectionMatrix(glm::mat4(1.0f)),
         orientation(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f))),
         radius(5.0f),
-        isPerspective(true),
-        left(-2.0f), right(2.0f), bottom(-2.0f), top(2.0f), nearPlane(1.0f), farPlane(10.0f) {
+        isPerspective(true) {
         glGenBuffers(1, &UboId);
         glBindBuffer(GL_UNIFORM_BUFFER, UboId);
         glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, 0, GL_STREAM_DRAW);
