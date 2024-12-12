@@ -41,13 +41,13 @@ class Camera {
  public:
   explicit Camera(GLuint bindingpoint);
   virtual ~Camera();
+
   glm::mat4 getViewMatrix() const;
   void setViewMatrix(const glm::mat4 &viewmatrix);
+
   glm::mat4 getProjectionMatrix() const;
   void setProjectionMatrix(const glm::mat4 &projectionmatrix, bool perspective);
   bool getIsPerspective() const;
-
-  void adjustDistance(float delta);
   
   glm::vec3 getPosition() const { return position; }
   void setPosition(const glm::vec3& newPosition) { position = newPosition; }
@@ -57,6 +57,10 @@ class Camera {
 
   void onMouseMove(GLFWwindow* window, double xpos, double ypos);
   void onScroll(GLFWwindow* window, double xoffset, double yoffset);
+
+  float getRadius() const { return radius; }
+  void  setRadius(float newRadius);
+  void adjustDistance(float delta);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

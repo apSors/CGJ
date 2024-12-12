@@ -117,25 +117,29 @@ namespace mgl {
     }
 
     void Camera::onScroll(GLFWwindow* window, double xoffset, double yoffset) {
-        const float zoomSensitivity = 0.05f;
+        const float zoomSensitivity = 0.1f;
         float delta = -static_cast<float>(yoffset) * zoomSensitivity;
             adjustDistance(delta);
     }
 
-    void Camera::adjustDistance(float delta) {
-        radius += delta;
-        if (radius < 0.5f) {
-            radius = 0.5f;
-        }
+    void Camera::setRadius(float newRadius) {
+        radius = newRadius;
         glm::vec3 forward = glm::mat3_cast(orientation) * glm::vec3(0.0f, 0.0f, -1.0f);
         position = -forward * radius;
 
         ViewMatrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::mat3_cast(orientation) * glm::vec3(0.0f, 1.0f, 0.0f));
 
         glBindBuffer(GL_UNIFORM_BUFFER, UboId);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4),
-            glm::value_ptr(ViewMatrix));
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(ViewMatrix));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
+
+    void Camera::adjustDistance(float delta) {
+        radius += delta;
+        if (radius < 2.0f) {
+            radius = 2.0f;
+        }
+        setRadius(radius);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

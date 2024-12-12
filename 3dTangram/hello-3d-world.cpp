@@ -14,6 +14,49 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "../mgl/mgl.hpp"
+#include <vector>
+
+class SceneNode {
+public:
+    SceneNode(mgl::Mesh* mesh = nullptr, glm::vec3 color = glm::vec3(1.0f))
+        : parent(nullptr), localTransform(glm::mat4(1.0f)), worldTransform(glm::mat4(1.0f)),
+        mesh(mesh), color(color) {}
+    void setLocalTransform(const glm::mat4& transform) { localTransform = transform; }
+    const glm::mat4& getWorldTransform() const { return worldTransform; }
+    void setColor(const glm::vec3& col) { color = col; }
+    void addChild(SceneNode* child) {
+        children.push_back(child);
+        child->parent = this;
+    }
+    void updateTransform() {
+        if (parent) {
+            worldTransform = parent->worldTransform * localTransform;
+        }
+        else {
+            worldTransform = localTransform;
+        }
+        for (SceneNode* child : children) {
+            child->updateTransform();
+        }
+    }
+    void draw(mgl::ShaderProgram* shader, GLint modelMatrixId, GLint colorId) {
+        if (mesh) {
+            glUniformMatrix4fv(modelMatrixId, 1, GL_FALSE, glm::value_ptr(worldTransform));
+            glUniform3fv(colorId, 1, glm::value_ptr(color));
+            mesh->draw();
+        }
+        for (SceneNode* child : children) {
+            child->draw(shader, modelMatrixId, colorId);
+        }
+    }
+private:
+    SceneNode* parent;
+    glm::mat4 localTransform;
+    glm::mat4 worldTransform;
+    mgl::Mesh* mesh;
+    glm::vec3 color;
+    std::vector<SceneNode*> children;
+};
 
 ////////////////////////////////////////////////////////////////////////// MYAPP
 
@@ -35,24 +78,55 @@ private:
     std::vector<glm::mat4> ModelMatrices;
     std::vector<mgl::Mesh*> Meshes;
 
-    glm::mat4 originalOrthographicMatrix;
-    glm::mat4 originalPerspectiveMatrix;
-    bool isUsingPerspective = true;
-
-    glm::mat4 viewMatrix;
-    glm::mat4 alternateViewMatrix;
-    bool isusingSecondCamera = false;
+    SceneNode* tangramRoot;
+    std::vector<SceneNode*> tangramPieces;
 
     void createMeshes();
     void createShaderPrograms();
     void createCamera();
     void switchCamera();
     void drawScene();
+    void createSceneGraph();
 
     float animationProgress = 0.0f;
     bool isAnimatingForward = false;
     bool isAnimating = false;
+
+    glm::mat4 orthographicMatrix;
+    glm::mat4 perspectiveMatrix;
+    bool isUsingPerspective = true;
+
+    glm::vec3 primaryCameraPosition;
+    glm::quat primaryCameraOrientation;
+    glm::mat4 primaryProjectionMatrix;
+    float primaryCameraRadius;
+
+    bool isusingSecondCamera = false;
+    glm::vec3 alternateCameraPosition;
+    glm::quat alternateCameraOrientation;
+    glm::mat4 alternateProjectionMatrix;
+    float alternateCameraRadius;
 };
+
+void MyApp::createSceneGraph() {
+    tangramRoot = new SceneNode();
+    std::vector<glm::vec3> colors = {
+        glm::vec3(0.7f, 0.3f, 0.2f), // Red
+        glm::vec3(0.4f, 0.7f, 0.3f), // Green
+        glm::vec3(0.2f, 0.3f, 0.8f), // Blue
+        glm::vec3(0.7f, 0.8f, 0.0f), // Yellow
+        glm::vec3(0.5f, 0.2f, 0.6f), // Purple
+        glm::vec3(0.2f, 0.6f, 0.7f), // Cyan
+        glm::vec3(0.8f, 0.5f, 0.3f)  // Orange
+    };
+    for (size_t i = 0; i < Meshes.size(); ++i) {
+        SceneNode* pieceNode = new SceneNode(Meshes[i], colors[i]);
+        pieceNode->setLocalTransform(ModelMatrices[i]);
+        tangramRoot->addChild(pieceNode);
+        tangramPieces.push_back(pieceNode);
+    }
+    tangramRoot->updateTransform();
+}
 
 ///////////////////////////////////////////////////////////////////////// MESHES
 
@@ -136,7 +210,6 @@ void MyApp::createMeshes() {
             boxTransformation = glm::rotate(boxTransformation, glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             break;
         }
-
         BoxModelMatrices.push_back(boxTransformation);
     }
 }
@@ -161,7 +234,6 @@ void MyApp::createShaderPrograms() {
             Shaders->addAttribute(mgl::TANGENT_ATTRIBUTE, mgl::Mesh::TANGENT);
         }
     }
-
     Shaders->addUniform(mgl::MODEL_MATRIX);
     Shaders->addUniform("baseColor");
     Shaders->addUniformBlock(mgl::CAMERA_BLOCK, UBO_BP);
@@ -176,68 +248,55 @@ void MyApp::createCamera() {
     int winx, winy;
     glfwGetFramebufferSize(glfwGetCurrentContext(), &winx, &winy);
     float aspectRatio = static_cast<float>(winx) / static_cast<float>(winy);
-
     float orthoHeight = 5.0f;
     float orthoWidth = orthoHeight * aspectRatio;
-
-    originalOrthographicMatrix = glm::ortho(
+    orthographicMatrix = glm::ortho(
         -orthoWidth, orthoWidth,
         -orthoHeight, orthoHeight,
         -10.0f, 100.0f
     );
-
-    originalPerspectiveMatrix = glm::perspective(
+    perspectiveMatrix = glm::perspective(
         glm::radians(100.0f), aspectRatio, 1.0f, 50.0f
     );
 
     Camera = new mgl::Camera(UBO_BP);
-    Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
+    Camera->setProjectionMatrix(orthographicMatrix, true);
+    Camera->setRadius(6.0f);
 
-    viewMatrix = glm::lookAt(
-        glm::vec3(0.0f, 0.0f, 5.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f)
-    );
+    primaryCameraOrientation = glm::quat(glm::vec3(0.0f, -0.7f, 0.f));
 
-    alternateViewMatrix = glm::lookAt(
-        glm::vec3(0.0f, 5.0f, 5.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f)
-    );
+    primaryProjectionMatrix = orthographicMatrix;
+    primaryCameraRadius = Camera->getRadius();
 
-    Camera->setViewMatrix(viewMatrix);
+    alternateCameraOrientation = glm::quat(glm::vec3(45.0f, 0.0f, 0.0f));
+    alternateProjectionMatrix = perspectiveMatrix;
+    alternateCameraRadius = 5.0f;
+
+    Camera->setOrientation(primaryCameraOrientation);
+    Camera->setProjectionMatrix(primaryProjectionMatrix, isUsingPerspective);
 }
 
 void MyApp::switchCamera() {
-    static glm::vec3 primaryCameraPosition = glm::vec3(0.0f, 0.0f, 5.0f);
-    static glm::quat primaryCameraOrientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
-    static glm::mat4 primaryProjectionMatrix = originalPerspectiveMatrix;
-
-    static glm::vec3 alternateCameraPosition = glm::vec3(0.0f, 10.0f, 0.0f);
-    static glm::quat alternateCameraOrientation = glm::quat(glm::vec3(-0.3f, 0.3f, 0.0f));
-    static glm::mat4 alternateProjectionMatrix = originalOrthographicMatrix;
-
     if (isusingSecondCamera) {
-        alternateCameraPosition = Camera->getPosition();
         alternateCameraOrientation = Camera->getOrientation();
         alternateProjectionMatrix = Camera->getProjectionMatrix();
+        alternateCameraRadius = Camera->getRadius();
 
-        Camera->setPosition(primaryCameraPosition);
         Camera->setOrientation(primaryCameraOrientation);
         Camera->setProjectionMatrix(primaryProjectionMatrix, isUsingPerspective);
+        Camera->setRadius(primaryCameraRadius);
     }
     else {
-        primaryCameraPosition = Camera->getPosition();
         primaryCameraOrientation = Camera->getOrientation();
         primaryProjectionMatrix = Camera->getProjectionMatrix();
+        primaryCameraRadius = Camera->getRadius();
 
-        Camera->setPosition(alternateCameraPosition);
         Camera->setOrientation(alternateCameraOrientation);
         Camera->setProjectionMatrix(alternateProjectionMatrix, !isUsingPerspective);
+        Camera->setRadius(alternateCameraRadius);
     }
     isusingSecondCamera = !isusingSecondCamera;
 }
-
 
 /////////////////////////////////////////////////////////////////////////// DRAW
 
@@ -267,22 +326,20 @@ glm::mat4 interpolate(const glm::mat4& start, const glm::mat4& end, float alpha)
 
 void MyApp::drawScene() {
     if (isAnimating) {
-        if (isAnimatingForward) {
-            animationProgress += 0.01f;
-            if (animationProgress > 1.0f) {
-                animationProgress = 1.0f;
-                isAnimating = false;
-            }
-        }
-        else {
-            animationProgress -= 0.01f;
-            if (animationProgress < 0.0f) {
-                animationProgress = 0.0f;
-                isAnimating = false;
-            }
-        }
-    }
+        animationProgress += isAnimatingForward ? 0.01f : -0.01f;
 
+        if (animationProgress == 0.0f || animationProgress == 1.0f) {
+            isAnimating = false;
+        }
+
+        for (size_t i = 0; i < tangramPieces.size(); ++i) {
+            glm::mat4 interpolatedTransform = interpolate(
+                ModelMatrices[i], BoxModelMatrices[i], animationProgress
+            );
+            tangramPieces[i]->setLocalTransform(interpolatedTransform);
+        }
+        tangramRoot->updateTransform();
+    }
     Shaders->bind();
 
     std::vector<glm::vec3> baseColors = {
@@ -297,14 +354,14 @@ void MyApp::drawScene() {
 
     for (size_t i = 0; i < Meshes.size(); ++i) {
         glm::mat4 interpolatedMatrix = interpolate(ModelMatrices[i], BoxModelMatrices[i], animationProgress);
-
         glUniformMatrix4fv(ModelMatrixId, 1, GL_FALSE, glm::value_ptr(interpolatedMatrix));
-
         glUniform3fv(Shaders->Uniforms["baseColor"].index, 1, glm::value_ptr(baseColors[i]));
 
         Meshes[i]->draw();
     }
-
+    Shaders->bind();
+    GLint colorId = Shaders->Uniforms["baseColor"].index;
+    tangramRoot->draw(Shaders, ModelMatrixId, colorId);
     Shaders->unbind();
 }
 
@@ -316,12 +373,12 @@ void MyApp::keyCallback(GLFWwindow* win, int key, int scancode, int action, int 
             switchCamera();
         }
         if (key == GLFW_KEY_P) {
-            if (Camera->getProjectionMatrix() == originalPerspectiveMatrix) {
-                Camera->setProjectionMatrix(originalOrthographicMatrix, false);
+            if (Camera->getProjectionMatrix() == perspectiveMatrix) {
+                Camera->setProjectionMatrix(orthographicMatrix, false);
                 isUsingPerspective = false;
             }
             else {
-                Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
+                Camera->setProjectionMatrix(perspectiveMatrix, true);
                 isUsingPerspective = true;
             }
         }
@@ -357,8 +414,9 @@ void MyApp::scrollCallback(GLFWwindow* win, double xoffset, double yoffset) {
 
 void MyApp::initCallback(GLFWwindow* win) {
     createMeshes();
-    createShaderPrograms();  // after mesh;
+    createShaderPrograms();
     createCamera();
+    createSceneGraph();
 }
 
 void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
@@ -368,21 +426,21 @@ void MyApp::windowSizeCallback(GLFWwindow* win, int winx, int winy) {
     float orthoHeight = 10.0f;
     float orthoWidth = orthoHeight * aspectRatio;
 
-    originalOrthographicMatrix = glm::ortho(
+    orthographicMatrix = glm::ortho(
         -orthoWidth, orthoWidth,
         -orthoHeight, orthoHeight,
         -10.0f, 100.0f
     );
 
-    originalPerspectiveMatrix = glm::perspective(
+    perspectiveMatrix = glm::perspective(
         glm::radians(100.0f), aspectRatio, 1.0f, 50.0f
     );
 
     if (isUsingPerspective) {
-        Camera->setProjectionMatrix(originalPerspectiveMatrix, true);
+        Camera->setProjectionMatrix(perspectiveMatrix, true);
     }
     else {
-        Camera->setProjectionMatrix(originalOrthographicMatrix, false);
+        Camera->setProjectionMatrix(orthographicMatrix, false);
     }
 }
 
